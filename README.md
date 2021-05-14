@@ -34,15 +34,18 @@ Put your images in the `/images` folder
 In the channel you want DIP-bot to post to call the following command to start posting.
 
 ```
-!uWu
+!start_posting
 ```
 
 Call command again to stop posting to that channel.
 
-## Current Issues
+You can also get one image by calling
 
-### Restart-ability
-The bot will need users to manually restart the loop by calling the command in `Usage` twice if the server goes down, restart-ability is currently a WIP
+```
+!!uWu!!
+```
+
+## Current Issues
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
