@@ -31,19 +31,19 @@ Put your images in the `/images` folder
 
 ## Usage
 
-In the channel you want DIP-bot to post to call the following command to start posting.
+### `start_posting`
+In the channel you want DIP-bot to post to call the command to start posting.
 
-```
-!start_posting
-```
 
 Call command again to stop posting to that channel.
 
-You can also get one image by calling
+### `!!uWu!!` (Get One Image)
+You can also get one image by calling this command
 
-```
-!!uWu!!
-```
+
+### `reset_viewed`
+Delete the stored seen images file to allow previously seen images to be 
+posted again
 
 ## Current Issues
 

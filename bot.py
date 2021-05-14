@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from bot.main_loop import main_loop
 from bot.startup import check_running
 from bot.get_image import send_image
-from bot.utility import file_to_array
+from bot.utility import file_to_array, delete_seen_by_guild
 
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
@@ -45,6 +45,11 @@ async def get_one(ctx):
     guild_id = ctx.channel.guild.id
     await send_image(
         ctx, file_to_array(f'guilds/images_{guild_id}.txt'), guild_id)
+
+
+@bot.command(name='reset_viewed')
+async def reset_viewed(ctx):
+    delete_seen_by_guild(ctx.channel.guild.id)
 
 
 @bot.event
