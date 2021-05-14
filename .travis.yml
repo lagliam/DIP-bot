@@ -1,0 +1,5 @@
+deploy:
+  provider: script
+  script: sh deploy/restart.sh
+  on:
+    branch: master
