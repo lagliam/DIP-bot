@@ -27,3 +27,7 @@ def file_to_array(filename):
         with open(filename, 'r') as f:
             array = f.readlines()
     return array
+
+
+def delete_seen_by_guild(guild_id):
+    open(f'../guilds/images_{guild_id}.txt', 'a').close()
