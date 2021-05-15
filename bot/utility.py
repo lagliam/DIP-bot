@@ -30,4 +30,15 @@ def file_to_array(filename):
 
 
 def delete_seen_by_guild(guild_id):
-    open(f'../guilds/images_{guild_id}.txt', 'a').close()
+    with open(f'../guilds/images_{guild_id}.txt', 'r+') as file:
+        file.truncate(0)
+        file.close()
+
+
+def get_posting_amount(guild_id, channel_id):
+    running_file = f'../guilds/{guild_id}.{channel_id}.running'
+    with open(running_file, 'r') as fp:
+        for line in fp:
+            key, value = line.split()
+            if key == 'post_amount':
+                return value
