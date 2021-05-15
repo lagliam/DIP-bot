@@ -40,10 +40,13 @@ Call command again to stop posting to that channel.
 ### `!!uWu!!` (Get One Image)
 You can also get one image by calling this command
 
-
 ### `reset_viewed`
 Delete the stored seen images file to allow previously seen images to be 
 posted again
+
+### `post_amount {x}`
+How many images to post at a time. X has to be a number greater than 0 and 
+less than 5
 
 ## Current Issues
 
