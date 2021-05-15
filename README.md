@@ -44,9 +44,13 @@ You can also get one image by calling this command
 Delete the stored seen images file to allow previously seen images to be 
 posted again
 
-### `post_amount {x}`
-How many images to post at a time. X has to be a number greater than 0 and 
+### `post_amount [1-5]`
+How many images to post at a time. Has to be a number greater than 0 and 
 less than 5
+
+### `post_frequency [1-5]`
+How many times per day split evenly to post. Has to be a number 
+greater than 0 and less than 5
 
 ## Current Issues
 
