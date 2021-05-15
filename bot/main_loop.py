@@ -7,7 +7,9 @@ import os
 from bot.constants import RUNNING_FILE_POLL_INTERVAL
 from bot.constants import TRIGGER_DURATION
 from bot.get_image import send_image
-from bot.utility import image_list, file_to_array, get_posting_amount
+from bot.utility import image_list, file_to_array, get_posting_amount, \
+    get_posting_frequency
+
 
 async def main_loop(ctx, running_file, guild_id, restart=False):
     # await ctx.send('(o･｀Д´･o) Baka!')
@@ -22,9 +24,8 @@ async def main_loop(ctx, running_file, guild_id, restart=False):
             await send_image(ctx, seen_images, guild_id, restart)
         start_waiting = 0
         restart = False
-        while start_waiting < TRIGGER_DURATION and os.path.exists(
-                running_file):
+        while start_waiting < (TRIGGER_DURATION / get_posting_frequency(
+                guild_id, running_file.split('.')[1])) \
+                and os.path.exists(running_file):
             await asyncio.sleep(RUNNING_FILE_POLL_INTERVAL)
             start_waiting += RUNNING_FILE_POLL_INTERVAL
-
-
