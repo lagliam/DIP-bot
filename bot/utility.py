@@ -30,4 +30,6 @@ def file_to_array(filename):
 
 
 def delete_seen_by_guild(guild_id):
-    open(f'../guilds/images_{guild_id}.txt', 'a').close()
+    with open(f'../guilds/images_{guild_id}.txt', 'r+') as file:
+        file.truncate(0)
+        file.close()
