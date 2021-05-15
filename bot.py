@@ -58,7 +58,7 @@ async def reset_viewed(ctx):
 async def post_amount(ctx, arg):
     if not arg.isnumeric():
         await ctx.send('- value must be lower than 5 but greater '
-                               'than 0 -')
+                       'than 0 -')
         return
     guild_id = ctx.channel.guild.id
     channel_id = ctx.channel.id
