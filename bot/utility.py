@@ -1,3 +1,6 @@
+# utility.py
+# contains the utility functions of the project
+
 import os
 
 
