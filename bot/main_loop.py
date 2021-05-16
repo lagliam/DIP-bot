@@ -24,8 +24,8 @@ async def main_loop(ctx, running_file, guild_id, restart=False):
             await send_image(ctx, seen_images, guild_id, restart)
         start_waiting = 0
         restart = False
-        while start_waiting < (TRIGGER_DURATION / get_posting_frequency(
-                guild_id, running_file.split('.')[1])) \
+        while start_waiting < (TRIGGER_DURATION / int(get_posting_frequency(
+                guild_id, running_file.split('.')[1]))) \
                 and os.path.exists(running_file):
             await asyncio.sleep(RUNNING_FILE_POLL_INTERVAL)
             start_waiting += RUNNING_FILE_POLL_INTERVAL

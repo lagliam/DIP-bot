@@ -1,3 +1,6 @@
+# get_image.py
+# will return one image and mark as viewed
+
 import os
 import random
 import discord
