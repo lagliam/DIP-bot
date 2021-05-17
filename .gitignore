@@ -128,3 +128,6 @@ images/
 guilds/
 .vscode
 .idea
+get_git.sh
+*.out
+*.err
