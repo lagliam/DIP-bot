@@ -26,19 +26,20 @@ bot = commands.Bot(command_prefix='!')
 async def start_posting(ctx):
     guild_id = ctx.channel.guild.id
     channel_id = ctx.channel.id
-    running_file = f'guilds/{guild_id}.{channel_id}.running'
+    running_file = f'../guilds/{guild_id}.{channel_id}.running'
     if os.path.exists(running_file):
         os.remove(running_file)
+        await ctx.send(text.STOP_POSTING)
         return
     else:
-        with open(running_file, 'a') as fp:
+        with open(running_file, 'a+') as fp:
             fp.write('post_amount 1\n')
             fp.write('post_frequency 1\n')
 
     print(f'started posting for server {guild_id}')
     await ctx.send(text.START_POSTING)
 
-    await main_loop(ctx, running_file, guild_id)
+    await main_loop(ctx, running_file, guild_id, channel_id)
 
     await ctx.send(text.START_POSTING_END)
     print(f'Ending posting for {guild_id}')
@@ -72,7 +73,7 @@ async def post_amount(ctx, arg):
     with open(running_file, 'r') as fp:
         for line in fp:
             key, value = line.split()
-            if value > 5 or value < 0 or value == 0:
+            if int(value) > 5 or int(value) < 0 or int(value) == 0:
                 await ctx.send(text.POST_AMOUNT_ERROR)
                 return
             if key == 'post_amount':
@@ -97,7 +98,7 @@ async def change_frequency(ctx, arg):
     with open(running_file, 'r') as fp:
         for line in fp:
             key, value = line.split()
-            if value > 5 or value < 0 or value == 0:
+            if int(value) > 5 or int(value) < 0 or int(value) == 0:
                 await ctx.send(text.CHANGE_FREQUENCY_ERROR)
                 return
             if key == 'post_frequency':
