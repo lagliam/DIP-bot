@@ -4,6 +4,7 @@
 START_POSTING='- AraAra~ Here some pics for you -'
 START_POSTING_HELP='Starts posting images to the channel where the start ' \
                    'posting command was called'
+STOP_POSTING='Posting stopped'
 START_POSTING_BRIEF='start posting images'
 START_POSTING_END='(o･｀Д´･o) Baka!'
 GET_IMAGE_HELP='Returns one picture and marks it as viewed'

@@ -15,5 +15,5 @@ async def check_running(bot):
         file_parts = file.split('.')  # need the channel id
         if file_parts:
             channel = bot.get_channel(int(file_parts[1]))
-            asyncio.create_task(main_loop(channel, file, file_parts[0],
+            asyncio.create_task(main_loop(channel, file, file_parts[0], file_parts[1],
                                           restart=True))
