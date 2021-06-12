@@ -14,7 +14,7 @@ async def get_motivated():
     img = Image.open("../motivashon/"+image)
 
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype("arial.ttf", 200)
+    font = ImageFont.truetype("/usr/share/fonts/truetype/freefont/FreeMono.ttf", 200)
     draw.text( (150, 1800), get_quote(), (255,255,255), font)
     img.save('../motivashon/scuff_motivation.jpg')
     
