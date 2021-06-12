@@ -4,8 +4,7 @@
 import os
 
 
-def image_list():
-    directory = '../images/'
+def image_list(directory='../images/'):
     images = []
     for filename in os.listdir(directory):
         if (filename.lower().endswith(".jpg")

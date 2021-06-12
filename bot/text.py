@@ -24,3 +24,7 @@ CHANGE_FREQUENCY_HELP='How many times per day in even intervals to post ' \
                       'images to the channel per day.\ne.g. change_frequency 3'
 CHANGE_FREQUENCY_BRIEF='how many times per day to post'
 CHANGE_FREQUENCY_END='- saved frequency of posts -'
+START_MOTIVATION_BRIEF='Post motivashonal pics'
+START_MOTIVASHON_HELP='Starts posting motivashonal pictures to the channel' \
+                        'specified (pro tip not really motivational)'
+START_MOTIVASHON_END='- stopping motivashon -'
