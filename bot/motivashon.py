@@ -7,7 +7,7 @@ import bot.utility as utility
 LINE1="FUCK"
 LINE2="OFF"
 
-def get_motivated():
+async def get_motivated():
     image_list = utility.image_list('../motivashon/')
     image = image_list.pop(random.randrange(len(image_list)))
 

@@ -115,7 +115,7 @@ async def change_frequency(ctx, arg):
 @bot.command(name='motivashon', help=text.START_MOTIVASHON_HELP,
              brief=text.START_MOTIVATION_BRIEF)
 async def start_motivashon(ctx):
-    get_motivated()
+    await get_motivated()
     await ctx.send('', file=discord.File('../motivashon/scuff_motivation.jpg'))
     os.remove('../motivashon/scuff_motivation.jpg')
 
