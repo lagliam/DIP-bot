@@ -5,8 +5,6 @@ from PIL import ImageDraw
 import bot.utility as utility
 import matplotlib.font_manager as fm
 
-LINE1="FUCK"
-LINE2="OFF"
 
 async def get_motivated():
     image_list = utility.image_list('../motivashon/')
