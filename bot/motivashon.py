@@ -3,6 +3,7 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 import bot.utility as utility
+import matplotlib.font_manager as fm
 
 LINE1="FUCK"
 LINE2="OFF"
@@ -14,7 +15,7 @@ async def get_motivated():
     img = Image.open("../motivashon/"+image)
 
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype("/usr/share/fonts/truetype/freefont/FreeMono.ttf", 200)
+    font = ImageFont.truetype(fm.findfont(fm.FontProperties(family='DejaVu Sans')), 200)
     draw.text( (150, 1800), get_quote(), (255,255,255), font)
     img.save('../motivashon/scuff_motivation.jpg')
     
