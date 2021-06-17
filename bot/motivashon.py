@@ -13,8 +13,14 @@ async def get_motivated():
     img = Image.open("../motivashon/"+image)
 
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(fm.findfont(fm.FontProperties(family='DejaVu Sans')), 200)
-    draw.text( (150, 1800), get_quote(), (255,255,255), font)
+    font = ImageFont.truetype(fm.findfont(fm.FontProperties(family='DejaVu Sans')), 300)
+    text = get_quote()
+    w, h = draw.textsize(text, font)
+    drawTextWithOutline(text, img.width/2 - w/2, img.height/2 + h/2, draw, font)
+    basewidth = 1024
+    wpercent = (basewidth/float(img.size[0]))
+    hsize = int((float(img.size[1])*float(wpercent)))
+    img = img.resize((basewidth,hsize), Image.ANTIALIAS)
     img.save('../motivashon/scuff_motivation.jpg')
     
     # make sure to delete image after sending
@@ -26,3 +32,11 @@ def get_quote():
     text2 = open("../motivashon/motivashon2.txt", 'r')
     t2 = [line.split(',') for line in text2.readlines()]
     return t1.pop(random.randrange(len(t1)))[0]+t2.pop(random.randrange(len(t2)))[0]
+
+def drawTextWithOutline(text, x, y, draw, font):
+        draw.text((x-10, y-10), text,(0,0,0),font=font)
+        draw.text((x+10, y-10), text,(0,0,0),font=font)
+        draw.text((x+10, y+10), text,(0,0,0),font=font)
+        draw.text((x-10, y+10), text,(0,0,0),font=font)
+        draw.text((x, y), text, (255,255,255), font=font)
+        return
