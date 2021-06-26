@@ -14,7 +14,7 @@ async def get_motivated():
 
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(fm.findfont(fm.FontProperties(family='DejaVu Sans')), 200)
-    text = utility.wrap_by_word(get_quote(), 4)
+    text = get_quote()
     w, h = draw.textsize(text, font)
     drawTextWithOutline(text, img.width/2 - w/2, img.height/2 + h/3, draw, font)
     basewidth = 1024
