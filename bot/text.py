@@ -28,3 +28,5 @@ START_MOTIVATION_BRIEF='Post motivashonal pics'
 START_MOTIVASHON_HELP='Starts posting motivashonal pictures to the channel' \
                         'specified (pro tip not really motivational)'
 START_MOTIVASHON_END='- stopping motivashon -'
+INSULT_ME_BRIEF='Get an evil insult thrown at you'
+INSULT_ME_HELP='Calls evil insult endpoint to throw an insult into the chat window'

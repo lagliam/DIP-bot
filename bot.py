@@ -5,6 +5,7 @@
 import os
 from pathlib import Path
 import discord
+import requests
 
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -14,7 +15,7 @@ from bot.startup import check_running
 from bot.get_image import send_image
 from bot.utility import file_to_array, delete_seen_by_guild
 import bot.text as text
-from bot.motivashon import get_motivated
+from bot.motivashon import get_motivated, get_insulted
 
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
@@ -118,6 +119,16 @@ async def start_motivashon(ctx):
     await get_motivated()
     await ctx.send('', file=discord.File('../motivashon/scuff_motivation.jpg'))
     os.remove('../motivashon/scuff_motivation.jpg')
+
+
+@bot.command(name='insult_me', help=text.INSULT_ME_HELP,
+             brief=text.INSULT_ME_BRIEF)
+async def start_insulting(ctx):
+    insult = requests.get('https://evilinsult.com/generate_insult.php?lang=en&type=json')
+    await get_insulted(insult.json().get('insult'))
+    await ctx.send('', file=discord.File('../motivashon/scuff_insult.jpg'))
+    os.remove('../motivashon/scuff_insult.jpg')
+
 
 @bot.event
 async def on_ready():

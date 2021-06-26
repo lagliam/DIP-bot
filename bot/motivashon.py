@@ -14,7 +14,7 @@ async def get_motivated():
 
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(fm.findfont(fm.FontProperties(family='DejaVu Sans')), 200)
-    text = get_quote()
+    text = utility.wrap_by_word(get_quote(), 4)
     w, h = draw.textsize(text, font)
     drawTextWithOutline(text, img.width/2 - w/2, img.height/2 + h/3, draw, font)
     basewidth = 1024
@@ -22,6 +22,25 @@ async def get_motivated():
     hsize = int((float(img.size[1])*float(wpercent)))
     img = img.resize((basewidth,hsize), Image.ANTIALIAS)
     img.save('../motivashon/scuff_motivation.jpg')
+    
+    # make sure to delete image after sending
+
+async def get_insulted(t):
+    text = utility.wrap_by_word(t, 4)
+    image_list = utility.image_list('../motivashon/')
+    image = image_list.pop(random.randrange(len(image_list)))
+
+    img = Image.open("../motivashon/"+image)
+
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype(fm.findfont(fm.FontProperties(family='DejaVu Sans')), 200)
+    w, h = draw.textsize(text, font)
+    drawTextWithOutline(text, img.width/2 - w/2, img.height/2 + h/3, draw, font)
+    basewidth = 1024
+    wpercent = (basewidth/float(img.size[0]))
+    hsize = int((float(img.size[1])*float(wpercent)))
+    img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+    img.save('../motivashon/scuff_insult.jpg')
     
     # make sure to delete image after sending
 

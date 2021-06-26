@@ -53,3 +53,12 @@ def get_posting_frequency(guild_id, channel_id):
             key, value = line.split()
             if key == 'post_frequency':
                 return value
+
+def wrap_by_word(s, n):
+    '''returns a string where \\n is inserted between every n words'''
+    a = s.split()
+    ret = ''
+    for i in range(0, len(a), n):
+        ret += ' '.join(a[i:i+n]) + '\n'
+
+    return ret
