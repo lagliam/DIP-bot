@@ -121,15 +121,6 @@ async def start_motivashon(ctx):
     os.remove('../motivashon/scuff_motivation.jpg')
 
 
-@bot.command(name='insult_me', help=text.INSULT_ME_HELP,
-             brief=text.INSULT_ME_BRIEF)
-async def start_insulting(ctx):
-    insult = requests.get('https://evilinsult.com/generate_insult.php?lang=en&type=json')
-    await get_insulted(insult.json().get('insult'))
-    await ctx.send('', file=discord.File('../motivashon/scuff_insult.jpg'))
-    os.remove('../motivashon/scuff_insult.jpg')
-
-
 @bot.event
 async def on_ready():
     print(f'Oni-chan! {bot.user.name} has connected to Discord! 0w0')
