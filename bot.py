@@ -14,7 +14,7 @@ from bot.startup import check_running
 from bot.get_image import send_image
 from bot.utility import file_to_array, delete_seen_by_guild
 import bot.text as text
-from bot.motivashon import get_motivated, get_insulted
+from bot.motivashon import get_motivated
 
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
