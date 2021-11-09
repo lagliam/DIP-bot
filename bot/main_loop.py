@@ -23,6 +23,7 @@ async def main_loop(ctx, running_file, guild_id, channel_id, restart=False):
         for _ in range(int(get_posting_amount(
                 guild_id, channel_id))):
             await send_image(ctx, seen_images, guild_id, restart)
+        if not restart:
             set_last_post_date(guild_id, channel_id, time.time())
 
         file_m_timestamp = datetime.datetime.fromtimestamp(
