@@ -37,22 +37,39 @@ def delete_seen_by_guild(guild_id):
         file.close()
 
 
-def get_posting_amount(guild_id, channel_id):
+def get_running_file_entry(guild_id, channel_id, key):
     running_file = f'../guilds/{guild_id}.{channel_id}.running'
     with open(running_file, 'r') as fp:
         for line in fp:
-            key, value = line.split()
-            if key == 'post_amount':
+            k, value = line.split()
+            if k == key:
                 return value
+
+
+def get_posting_amount(guild_id, channel_id):
+    return get_running_file_entry(guild_id, channel_id, 'post_amount')
 
 
 def get_posting_frequency(guild_id, channel_id):
+    return get_running_file_entry(guild_id, channel_id, 'post_frequency')
+
+
+def get_last_post_date(guild_id, channel_id):
+    return get_running_file_entry(guild_id, channel_id, 'last_post')
+
+
+def set_last_post_date(guild_id, channel_id, date):
     running_file = f'../guilds/{guild_id}.{channel_id}.running'
+    new_file = ""
     with open(running_file, 'r') as fp:
         for line in fp:
             key, value = line.split()
-            if key == 'post_frequency':
-                return value
+            if key == 'last_post':
+                line = f'last_post {date}\n'
+            new_file += line
+    write_file = open(f'../guilds/{guild_id}.{channel_id}.running', 'w')
+    write_file.writelines(new_file)
+    write_file.close()
 
 
 def wrap_by_word(s, n):

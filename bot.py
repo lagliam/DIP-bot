@@ -5,6 +5,7 @@
 import os
 from pathlib import Path
 import discord
+import time
 
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -37,6 +38,7 @@ async def start_posting(ctx):
         with open(running_file, 'a+') as fp:
             fp.write('post_amount 1\n')
             fp.write('post_frequency 1\n')
+            fp.write(f'last_post {time.time()}\n')
 
     print(f'started posting for server {guild_id}')
     await ctx.send(text.START_POSTING)
