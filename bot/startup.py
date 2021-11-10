@@ -2,6 +2,7 @@
 # prepares and manages the restart process
 
 import asyncio
+from datetime import datetime
 import glob
 import os
 
@@ -9,7 +10,7 @@ from bot.main_loop import main_loop
 
 
 async def check_running(bot):
-    print('Im restarting!')
+    print(f'{datetime.now()}> Im restarting!')
     os.chdir("guilds")
     for file in glob.glob("*.running"):
         file_parts = file.split('.')  # need the channel id

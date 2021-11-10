@@ -1,7 +1,8 @@
 # bot.py
 # DIP-bot
-# Author: Liam Goring Apr 2021
+# Author: Liam Goring Nov 2021
 
+from datetime import datetime
 import os
 from pathlib import Path
 import discord
@@ -46,15 +47,17 @@ async def start_posting(ctx):
     await main_loop(ctx, running_file, guild_id, channel_id)
 
     await ctx.send(text.START_POSTING_END)
-    print(f'Ending posting for {guild_id}')
+    print(f'{datetime.now()}> Ending posting for {guild_id}')
 
 
 @bot.command(name='!uWu!!', help=text.GET_IMAGE_HELP,
              brief=text.GET_IMAGE_BRIEF)
 async def get_one(ctx):
     guild_id = ctx.channel.guild.id
-    await send_image(
-        ctx, file_to_array(f'guilds/images_{guild_id}.txt'), guild_id)
+    sent = await send_image(
+        ctx, file_to_array(f'../guilds/images_{guild_id}.txt'), guild_id)
+    if not sent:
+        await ctx.send('(o･｀Д´･o) Baka! No more images to see')
 
 
 @bot.command(name='reset_viewed', help=text.RESET_VIEWED_HELP,
@@ -124,7 +127,7 @@ async def start_motivashon(ctx):
 
 @bot.event
 async def on_ready():
-    print(f'Oni-chan! {bot.user.name} has connected to Discord! 0w0')
+    print(f'{datetime.now()}> Oni-chan! {bot.user.name} has connected to Discord! 0w0')
     await check_running(bot)
 
 
