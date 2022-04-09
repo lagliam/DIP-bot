@@ -2,7 +2,6 @@
 # will return one image and mark as viewed
 # returns true if image was sent, false otherwise
 
-from asyncio.windows_events import NULL
 from datetime import datetime
 import os
 import random
