@@ -14,12 +14,11 @@ from bot.utility import file_to_array, get_posting_amount, \
 
 
 async def main_loop(ctx, running_file, guild_id, channel_id, restart=False):
-    seen_images = file_to_array(f'../guilds/images_{guild_id}.txt')
-
     while os.path.exists(running_file):
+        seen_images = file_to_array(f'../guilds/images_{guild_id}.txt')
         for _ in range(int(get_posting_amount(
                 guild_id, channel_id))):
-            await send_image(ctx, seen_images, guild_id, restart)
+            await send_image(ctx, seen_images, guild_id, channel_id, restart)
         if not restart:
             set_last_post_date(guild_id, channel_id, time.time())
 

@@ -40,6 +40,7 @@ async def start_posting(ctx):
             fp.write('post_amount 1\n')
             fp.write('post_frequency 1\n')
             fp.write(f'last_post {time.time()}\n')
+            fp.write('all_seen false\n')
 
     print(f'started posting for server {guild_id}')
     await ctx.send(text.START_POSTING)

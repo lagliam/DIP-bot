@@ -2,16 +2,17 @@
 # will return one image and mark as viewed
 # returns true if image was sent, false otherwise
 
+from asyncio.windows_events import NULL
 from datetime import datetime
 import os
 import random
 import discord
 
 from bot.constants import LIMIT_SIZE
-from bot.utility import image_list, write_viewed_image_list_for_guild
+from bot.utility import image_list, write_viewed_image_list_for_guild, get_all_seen_status, set_all_seen_status
 
 
-async def send_image(ctx, seen_images, guild_id, restart=False):
+async def send_image(ctx, seen_images, guild_id, channel_id=None, restart=False):
     file_list = image_list()
     filename = file_list.pop(random.randrange(len(file_list)))
     while os.path.getsize('../images/' + filename) > LIMIT_SIZE:
@@ -21,13 +22,25 @@ async def send_image(ctx, seen_images, guild_id, restart=False):
         try:
             filename = file_list.pop(random.randrange(len(file_list)))
         except ValueError:
-            filename = ''    
+            filename = ''
+
+    if(channel_id):
+        isAllSeen = get_all_seen_status(guild_id, channel_id)
+    else:
+        isAllSeen = False
+
     if not restart and filename:
+        if (channel_id):
+            set_all_seen_status(guild_id, channel_id, 'false')
         await ctx.send('', file=discord.File('../images/' + filename))
         write_viewed_image_list_for_guild(filename, guild_id)
         return True
-    if not filename:
-        print(f'{datetime.now()}> out of images for {guild_id} ')
     
+    if not filename and not isAllSeen:
+        print(f'{datetime.now()}> now out of images for {guild_id} ')
+        set_all_seen_status(guild_id, channel_id, 'true')
+
+    if (isAllSeen and restart):
+        print(f'{datetime.now()}> reporting out of images for {guild_id} ')
+
     return False
-    

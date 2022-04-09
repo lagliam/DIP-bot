@@ -58,6 +58,22 @@ def get_last_post_date(guild_id, channel_id):
     return get_running_file_entry(guild_id, channel_id, 'last_post')
 
 
+def get_all_seen_status(guild_id, channel_id):
+    return get_running_file_entry(guild_id, channel_id, 'all_seen') == 'true'
+
+def set_all_seen_status(guild_id, channel_id, status):
+    running_file = f'../guilds/{guild_id}.{channel_id}.running'
+    new_file = ""
+    with open(running_file, 'r') as fp:
+        for line in fp:
+            key, _ = line.split()
+            if key == 'all_seen':
+                line = f'all_seen {status}\n'
+            new_file += line
+    write_file = open(f'../guilds/{guild_id}.{channel_id}.running', 'w')
+    write_file.writelines(new_file)
+    write_file.close()
+
 def set_last_post_date(guild_id, channel_id, date):
     running_file = f'../guilds/{guild_id}.{channel_id}.running'
     new_file = ""
