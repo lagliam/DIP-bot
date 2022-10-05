@@ -57,7 +57,7 @@ def get_database_entry(channel_id, key):
 def set_database_entry(channel_id, key, value):
     conn = bot.database.sqlite_connection()
     cur = conn.cursor()
-    cur.execute(f"UPDATE guilds SET {key} = {value} WHERE channel is {channel_id}")
+    cur.execute(f"UPDATE guilds SET {key} = {value} WHERE channel is '{channel_id}'")
     conn.commit()
     conn.close()
 
