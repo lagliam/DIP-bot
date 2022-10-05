@@ -23,23 +23,23 @@ async def send_image(ctx, seen_images, guild_id, channel_id=None, restart=False)
         except ValueError:
             filename = ''
 
-    if(channel_id):
-        isAllSeen = get_all_seen_status(guild_id, channel_id)
+    if channel_id:
+        is_all_seen = get_all_seen_status(guild_id, channel_id)
     else:
-        isAllSeen = False
+        is_all_seen = False
 
     if not restart and filename:
-        if (channel_id):
+        if channel_id:
             set_all_seen_status(guild_id, channel_id, 'false')
         await ctx.send('', file=discord.File('../images/' + filename))
         write_viewed_image_list_for_guild(filename, guild_id)
         return True
     
-    if not filename and not isAllSeen:
+    if not filename and not is_all_seen:
         print(f'{datetime.now()}> now out of images for {guild_id} ')
         set_all_seen_status(guild_id, channel_id, 'true')
 
-    if (isAllSeen and restart):
+    if is_all_seen and restart:
         print(f'{datetime.now()}> reporting out of images for {guild_id} ')
 
     return False

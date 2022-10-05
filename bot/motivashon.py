@@ -16,7 +16,7 @@ async def get_motivated():
     font = ImageFont.truetype(fm.findfont(fm.FontProperties(family='DejaVu Sans')), 200)
     text = get_quote()
     w, h = draw.textsize(text, font)
-    drawTextWithOutline(text, img.width / 2 - w / 2, img.height / 2 + h / 3, draw, font)
+    draw_text_with_outline(text, img.width / 2 - w / 2, img.height / 2 + h / 3, draw, font)
     basewidth = 1024
     wpercent = (basewidth / float(img.size[0]))
     hsize = int((float(img.size[1]) * float(wpercent)))
@@ -35,7 +35,7 @@ def get_quote():
     return t1.pop(random.randrange(len(t1)))[0] + t2.pop(random.randrange(len(t2)))[0]
 
 
-def drawTextWithOutline(text, x, y, draw, font):
+def draw_text_with_outline(text, x, y, draw, font):
     draw.text((x - 10, y - 10), text, (0, 0, 0), font=font)
     draw.text((x + 10, y - 10), text, (0, 0, 0), font=font)
     draw.text((x + 10, y + 10), text, (0, 0, 0), font=font)

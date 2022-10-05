@@ -61,6 +61,7 @@ def get_last_post_date(guild_id, channel_id):
 def get_all_seen_status(guild_id, channel_id):
     return get_running_file_entry(guild_id, channel_id, 'all_seen') == 'true'
 
+
 def set_all_seen_status(guild_id, channel_id, status):
     running_file = f'../guilds/{guild_id}.{channel_id}.running'
     new_file = ""
@@ -73,6 +74,7 @@ def set_all_seen_status(guild_id, channel_id, status):
     write_file = open(f'../guilds/{guild_id}.{channel_id}.running', 'w')
     write_file.writelines(new_file)
     write_file.close()
+
 
 def set_last_post_date(guild_id, channel_id, date):
     running_file = f'../guilds/{guild_id}.{channel_id}.running'
@@ -89,7 +91,7 @@ def set_last_post_date(guild_id, channel_id, date):
 
 
 def wrap_by_word(s, n):
-    '''returns a string where \\n is inserted between every n words'''
+    """returns a string where \\n is inserted between every n words"""
     a = s.split()
     ret = ''
     for i in range(0, len(a), n):
