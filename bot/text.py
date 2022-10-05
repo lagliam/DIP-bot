@@ -1,7 +1,7 @@
 # text.py
 # contains the text constants for the project
 
-START_POSTING = '- AraAra~ Here some pics for you -'
+START_POSTING = '~AraAra~ Here some pics for you -'
 START_POSTING_HELP = 'Starts posting images to the channel where the start ' \
                      'posting command was called'
 STOP_POSTING = 'Posting stopped'
@@ -28,3 +28,4 @@ START_MOTIVATION_BRIEF = 'Post motivashonal pics'
 START_MOTIVASHON_HELP = 'Starts posting motivashonal pictures to the channel' \
                         'specified (pro tip not really motivational)'
 START_MOTIVASHON_END = '- stopping motivashon -'
+NO_MORE_TO_SEE = '(o･｀Д´･o) Baka! No more images to see'

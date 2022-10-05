@@ -1,14 +1,16 @@
 import os
+import sqlite3
 import time
 from datetime import datetime
 
 import discord
 
+import bot.database
 import bot.text as text
-from bot.get_image import send_image
+from bot.send_image import send_image
 from bot.main_loop import main_loop
 from bot.motivashon import get_motivated
-from bot.utility import file_to_array, delete_seen_by_guild
+from bot.utility import get_seen_images, delete_seen_by_guild
 
 
 async def start_posting(ctx):
@@ -20,27 +22,29 @@ async def start_posting(ctx):
         await ctx.send(text.STOP_POSTING)
         return
     else:
-        with open(running_file, 'a+') as fp:
-            fp.write('post_amount 1\n')
-            fp.write('post_frequency 1\n')
-            fp.write(f'last_post {time.time()}\n')
-            fp.write('all_seen false\n')
-
-    print(f'started posting for server {guild_id}')
-    await ctx.send(text.START_POSTING)
+        defaults = (f'{channel_id}', f'{guild_id}', '1', '1', f'{time.time()}', 'false')
+        try:
+            conn = bot.database.sqlite_connection()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO guilds VALUES(?,?,?,?,?,?);", defaults)
+            conn.commit()
+            conn.close()
+        except sqlite3.Error as error:
+            print(f"{datetime.now()}> Error while adding to db for guild {guild_id}", error)
+        open(running_file, 'a+')
+        print(f'{datetime.now()}> started posting for server {guild_id}')
+        await ctx.send(text.START_POSTING)
 
     await main_loop(ctx, running_file, guild_id, channel_id)
-
     await ctx.send(text.START_POSTING_END)
     print(f'{datetime.now()}> Ending posting for {guild_id}')
 
 
 async def get_one(ctx):
     guild_id = ctx.channel.guild.id
-    sent = await send_image(
-        ctx, file_to_array(f'../guilds/images_{guild_id}.txt'), guild_id)
+    sent = await send_image(ctx, guild_id, ctx.channel.id)
     if not sent:
-        await ctx.send('(o･｀Д´･o) Baka! No more images to see')
+        await ctx.send(text.NO_MORE_TO_SEE)
 
 
 async def reset_viewed(ctx):
@@ -52,22 +56,10 @@ async def post_amount(ctx, arg):
     if not arg.isnumeric():
         await ctx.send(text.POST_AMOUNT_ERROR)
         return
-    guild_id = ctx.channel.guild.id
-    channel_id = ctx.channel.id
-    running_file = f'../guilds/{guild_id}.{channel_id}.running'
-    new_file = ""
-    with open(running_file, 'r') as fp:
-        for line in fp:
-            key, value = line.split()
-            if int(value) > 5 or int(value) < 0 or int(value) == 0:
-                await ctx.send(text.POST_AMOUNT_ERROR)
-                return
-            if key == 'post_amount':
-                line = f'post_amount {arg}\n'
-            new_file += line
-    write_file = open(f'../guilds/{guild_id}.{channel_id}.running', 'w')
-    write_file.writelines(new_file)
-    write_file.close()
+    if int(arg) > 5 or int(arg) < 0 or int(arg) == 0:
+        await ctx.send(text.CHANGE_FREQUENCY_ERROR)
+        return
+    bot.utility.set_post_amount(ctx.channel.id, arg)
     await ctx.send(text.POST_AMOUNT_END)
 
 
@@ -75,22 +67,10 @@ async def change_frequency(ctx, arg):
     if not arg.isnumeric():
         await ctx.send(text.CHANGE_FREQUENCY_ERROR)
         return
-    guild_id = ctx.channel.guild.id
-    channel_id = ctx.channel.id
-    running_file = f'../guilds/{guild_id}.{channel_id}.running'
-    new_file = ""
-    with open(running_file, 'r') as fp:
-        for line in fp:
-            key, value = line.split()
-            if int(value) > 5 or int(value) < 0 or int(value) == 0:
-                await ctx.send(text.CHANGE_FREQUENCY_ERROR)
-                return
-            if key == 'post_frequency':
-                line = f'post_frequency {arg}\n'
-            new_file += line
-    write_file = open(f'../guilds/{guild_id}.{channel_id}.running', 'w')
-    write_file.writelines(new_file)
-    write_file.close()
+    if int(arg) > 5 or int(arg) < 0 or int(arg) == 0:
+        await ctx.send(text.CHANGE_FREQUENCY_ERROR)
+        return
+    bot.utility.set_post_frequency(ctx.channel.id, arg)
     await ctx.send(text.CHANGE_FREQUENCY_END)
 
 

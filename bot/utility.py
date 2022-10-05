@@ -3,6 +3,8 @@
 
 import os
 
+import bot.database
+
 
 def image_list(directory='../images/'):
     images = []
@@ -19,75 +21,77 @@ def image_list(directory='../images/'):
 
 
 def write_viewed_image_list_for_guild(filename, guild_id=None):
-    with open(f'../guilds/images_{guild_id}.txt', 'a+') as f:
-        f.write("%s\n" % filename)
+    conn = bot.database.sqlite_connection()
+    cur = conn.cursor()
+    cur.execute(f"INSERT INTO images VALUES('{guild_id}', '{filename}')")
+    conn.commit()
+    conn.close()
 
 
-def file_to_array(filename):
-    array = []
-    if os.path.exists(filename):
-        with open(filename, 'r') as f:
-            array = f.readlines()
-    return array
+def get_seen_images(guild):
+    conn = bot.database.sqlite_connection()
+    cur = conn.cursor()
+    cur.execute(f"SELECT image FROM images WHERE guild is {guild}")
+    result = cur.fetchall()
+    conn.close()
+    return result
 
 
 def delete_seen_by_guild(guild_id):
-    with open(f'../guilds/images_{guild_id}.txt', 'r+') as file:
-        file.truncate(0)
-        file.close()
+    conn = bot.database.sqlite_connection()
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM images WHERE guild is {guild_id}")
+    conn.commit()
+    conn.close()
 
 
-def get_running_file_entry(guild_id, channel_id, key):
-    running_file = f'../guilds/{guild_id}.{channel_id}.running'
-    with open(running_file, 'r') as fp:
-        for line in fp:
-            k, value = line.split()
-            if k == key:
-                return value
+def get_database_entry(channel_id, key):
+    conn = bot.database.sqlite_connection()
+    cur = conn.cursor()
+    cur.execute(f"SELECT {key} FROM guilds WHERE channel is '{channel_id}'")
+    result = cur.fetchone()
+    conn.close()
+    return result
 
 
-def get_posting_amount(guild_id, channel_id):
-    return get_running_file_entry(guild_id, channel_id, 'post_amount')
+def set_database_entry(channel_id, key, value):
+    conn = bot.database.sqlite_connection()
+    cur = conn.cursor()
+    cur.execute(f"UPDATE guilds SET {key} = {value} WHERE channel is {channel_id}")
+    conn.commit()
+    conn.close()
 
 
-def get_posting_frequency(guild_id, channel_id):
-    return get_running_file_entry(guild_id, channel_id, 'post_frequency')
+def get_posting_amount(channel_id):
+    return get_database_entry(channel_id, 'post_amount')[0]
 
 
-def get_last_post_date(guild_id, channel_id):
-    return get_running_file_entry(guild_id, channel_id, 'last_post')
+def get_posting_frequency(channel_id):
+    return get_database_entry(channel_id, 'post_frequency')[0]
 
 
-def get_all_seen_status(guild_id, channel_id):
-    return get_running_file_entry(guild_id, channel_id, 'all_seen') == 'true'
+def get_last_post_date(channel_id):
+    return get_database_entry(channel_id, 'last_post')[0]
 
 
-def set_all_seen_status(guild_id, channel_id, status):
-    running_file = f'../guilds/{guild_id}.{channel_id}.running'
-    new_file = ""
-    with open(running_file, 'r') as fp:
-        for line in fp:
-            key, _ = line.split()
-            if key == 'all_seen':
-                line = f'all_seen {status}\n'
-            new_file += line
-    write_file = open(f'../guilds/{guild_id}.{channel_id}.running', 'w')
-    write_file.writelines(new_file)
-    write_file.close()
+def get_all_seen_status(channel_id):
+    return get_database_entry(channel_id, 'all_seen')[0] == 'true'
 
 
-def set_last_post_date(guild_id, channel_id, date):
-    running_file = f'../guilds/{guild_id}.{channel_id}.running'
-    new_file = ""
-    with open(running_file, 'r') as fp:
-        for line in fp:
-            key, value = line.split()
-            if key == 'last_post':
-                line = f'last_post {date}\n'
-            new_file += line
-    write_file = open(f'../guilds/{guild_id}.{channel_id}.running', 'w')
-    write_file.writelines(new_file)
-    write_file.close()
+def set_all_seen_status(channel_id, status):
+    set_database_entry(channel_id, 'all_seen', status)
+
+
+def set_last_post_date(channel_id, date):
+    set_database_entry(channel_id, 'last_post', date)
+
+
+def set_post_amount(channel_id, amount):
+    set_database_entry(channel_id, 'post_amount', amount)
+
+
+def set_post_frequency(channel_id, amount):
+    set_database_entry(channel_id, 'post_frequency', amount)
 
 
 def wrap_by_word(s, n):

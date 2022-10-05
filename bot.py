@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 import bot.command as bot_command
 import bot.text as text
-from bot.startup import check_running
+from bot.startup import startup
 
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
@@ -59,7 +59,7 @@ async def start_motivashon(ctx):
 @bot.event
 async def on_ready():
     print(f'{datetime.now()}> Oni-chan! {bot.user.name} has connected to Discord! 0w0')
-    await check_running(bot)
+    await startup(bot)
 
 
 bot.run(TOKEN)
