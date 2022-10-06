@@ -3,6 +3,7 @@
 
 import logging
 import os
+import sys
 
 import bot.database
 
@@ -106,5 +107,5 @@ def wrap_by_word(s, n):
 
 
 def log_event(message):
-    logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(message)s', level=logging.INFO)
     logging.info(message)
