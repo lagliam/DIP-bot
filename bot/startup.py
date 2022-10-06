@@ -2,16 +2,16 @@
 # prepares and manages the restart process
 
 import asyncio
-from datetime import datetime
 import glob
 import os
 import bot.database as database
 
 from bot.main_loop import main_loop
+from bot.utility import log_event
 
 
 async def startup(bot):
-    print(f'{datetime.now()}> Im restarting!')
+    log_event('Im restarting!')
     os.chdir("guilds")
     conn = database.sqlite_connection()
     create_startup_tables(conn)

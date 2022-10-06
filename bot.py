@@ -3,7 +3,6 @@
 # Author: Liam Goring
 
 import os
-from datetime import datetime
 from pathlib import Path
 
 from discord.ext import commands
@@ -11,6 +10,7 @@ from dotenv import load_dotenv
 
 import bot.command as bot_command
 import bot.text as text
+import bot.utility as utility
 from bot.startup import startup
 
 dotenv_path = Path('.env')
@@ -58,7 +58,7 @@ async def start_motivashon(ctx):
 
 @bot.event
 async def on_ready():
-    print(f'{datetime.now()}> Oni-chan! {bot.user.name} has connected to Discord! 0w0')
+    utility.log_event(f'Oni-chan! {bot.user.name} has connected to Discord! 0w0')
     await startup(bot)
 
 

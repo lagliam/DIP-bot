@@ -1,6 +1,7 @@
 # utility.py
 # contains the utility functions of the project
 
+import logging
 import os
 
 import bot.database
@@ -20,7 +21,7 @@ def image_list(directory='../images/'):
     return images
 
 
-def write_viewed_image_list_for_guild(filename, guild_id=None):
+def write_viewed_image_list_for_guild(filename, guild_id):
     conn = bot.database.sqlite_connection()
     cur = conn.cursor()
     cur.execute(f"INSERT INTO images VALUES('{guild_id}', '{filename}')")
@@ -75,7 +76,7 @@ def get_last_post_date(channel_id):
 
 
 def get_all_seen_status(channel_id):
-    return get_database_entry(channel_id, 'all_seen')[0] == 'true'
+    return get_database_entry(channel_id, 'all_seen')[0] == '1'
 
 
 def set_all_seen_status(channel_id, status):
@@ -102,3 +103,8 @@ def wrap_by_word(s, n):
         ret += ' '.join(a[i:i + n]) + '\n'
 
     return ret
+
+
+def log_event(message):
+    logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+    logging.info(message)
