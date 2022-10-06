@@ -9,7 +9,8 @@ import discord
 
 import bot.database
 from bot.constants import LIMIT_SIZE
-from bot.utility import image_list, write_viewed_image_list_for_guild, get_all_seen_status, set_all_seen_status
+from bot.utility import image_list, write_viewed_image_list_for_guild, get_all_seen_status, set_all_seen_status, \
+    log_event
 
 
 async def send_image(ctx, guild_id, channel_id=None, restart=False):
@@ -17,7 +18,7 @@ async def send_image(ctx, guild_id, channel_id=None, restart=False):
     filename = file_list.pop(random.randrange(len(file_list)))
     while os.path.getsize('../images/' + filename) > LIMIT_SIZE:
         filename = file_list.pop(random.randrange(len(file_list)))
-        print(f'{datetime.now()}> image {filename} too large to send')
+        log_event(f'image {filename} too large to send')
 
     conn = bot.database.sqlite_connection()
     cur = conn.cursor()
@@ -47,10 +48,10 @@ async def send_image(ctx, guild_id, channel_id=None, restart=False):
         return True
     
     if not filename and not is_all_seen:
-        print(f'{datetime.now()}> now out of images for {guild_id} ')
+        log_event(f'now out of images for {guild_id} ')
         set_all_seen_status(channel_id, 'true')
 
     if is_all_seen and restart:
-        print(f'{datetime.now()}> reporting out of images for {guild_id} ')
+        log_event(f'reporting out of images for {guild_id} ')
 
     return False

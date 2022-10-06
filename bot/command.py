@@ -1,7 +1,6 @@
-import os
 import sqlite3
 import time
-from datetime import datetime
+from pathlib import Path
 
 import discord
 
@@ -10,34 +9,36 @@ import bot.text as text
 from bot.send_image import send_image
 from bot.main_loop import main_loop
 from bot.motivashon import get_motivated
-from bot.utility import get_seen_images, delete_seen_by_guild
+from bot.utility import get_seen_images, delete_seen_by_guild, log_event
 
 
 async def start_posting(ctx):
     guild_id = ctx.channel.guild.id
     channel_id = ctx.channel.id
     running_file = f'../guilds/{guild_id}.{channel_id}.running'
-    if os.path.exists(running_file):
-        os.remove(running_file)
+    if Path(running_file).exists():
+        Path(running_file).unlink()
+        log_event(f'Stopped posting for server {guild_id}')
         await ctx.send(text.STOP_POSTING)
         return
     else:
-        defaults = (f'{channel_id}', f'{guild_id}', '1', '1', f'{time.time()}', 'false')
+        defaults = (f'{channel_id}', f'{guild_id}', '1', '1', f'{time.time()}', '0+-')
+        conn = bot.database.sqlite_connection()
         try:
-            conn = bot.database.sqlite_connection()
             cur = conn.cursor()
             cur.execute("INSERT INTO guilds VALUES(?,?,?,?,?,?);", defaults)
             conn.commit()
             conn.close()
         except sqlite3.Error as error:
-            print(f"{datetime.now()}> Error while adding to db for guild {guild_id}", error)
-        open(running_file, 'a+')
-        print(f'{datetime.now()}> started posting for server {guild_id}')
+            conn.close()
+            log_event(f"Error while adding to db for guild {guild_id} {error}")
+        Path(running_file).touch()
+        log_event(f'Started posting for server {guild_id}')
         await ctx.send(text.START_POSTING)
 
     await main_loop(ctx, running_file, guild_id, channel_id)
     await ctx.send(text.START_POSTING_END)
-    print(f'{datetime.now()}> Ending posting for {guild_id}')
+    log_event(f'Ending posting for {guild_id}')
 
 
 async def get_one(ctx):
@@ -77,4 +78,4 @@ async def change_frequency(ctx, arg):
 async def start_motivashon(ctx):
     await get_motivated()
     await ctx.send('', file=discord.File('../motivashon/scuff_motivation.jpg'))
-    os.remove('../motivashon/scuff_motivation.jpg')
+    Path('../motivashon/scuff_motivation.jpg').unlink()

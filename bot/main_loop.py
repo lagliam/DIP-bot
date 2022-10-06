@@ -3,7 +3,7 @@
 
 import asyncio
 import datetime
-import os
+from pathlib import Path
 import time
 
 from bot.constants import RUNNING_FILE_POLL_INTERVAL, TRIGGER_DURATION
@@ -12,9 +12,11 @@ from bot.utility import get_posting_amount, get_posting_frequency, get_last_post
 
 
 async def main_loop(ctx, running_file, guild_id, channel_id, restart=False):
-    while os.path.exists(running_file):
+    while Path(running_file).exists():
         for _ in range(int(get_posting_amount(channel_id))):
-            await send_image(ctx, guild_id, channel_id, restart)
+            sent = await send_image(ctx, guild_id, channel_id, restart)
+            if not sent:
+                break
         if not restart:
             set_last_post_date(channel_id, time.time())
 
@@ -23,6 +25,6 @@ async def main_loop(ctx, running_file, guild_id, channel_id, restart=False):
         start_waiting = (datetime.datetime.now() - timestamp).total_seconds()
         restart = False
         while start_waiting < (TRIGGER_DURATION / int(get_posting_frequency(channel_id))) \
-                and os.path.exists(running_file):
+                and Path(running_file).exists():
             await asyncio.sleep(RUNNING_FILE_POLL_INTERVAL)
             start_waiting += RUNNING_FILE_POLL_INTERVAL
