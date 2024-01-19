@@ -1,6 +1,6 @@
 # Discord Image Posting Bot (DIP-Bot)
 
-DIP-Bot is a Discord bot takes a directory of images and posts to a channel twice a day
+DIP-Bot is a Discord bot takes a directory of images and posts to a channel on an interval
 
 ## Installation
 
@@ -13,31 +13,28 @@ Clone this repository to your server
 ```git
 git clone https://github.com/lagliam/DIP-bot.git
 ```
-
-Place token in `.env` file
-
-#### Command Line
- 
+ Run
 ```bash
 setup.sh
 ```
 Put your images in the `/images` folder
 
+Place token in `.env` file
+
 ### Running Service
 
 ```bash
-./bot.sh
+docker-compose up -d
 ```
 
 ## Usage
 
-### `start_posting`
+### `start`
 In the channel you want DIP-bot to post to call the command to start posting.
-
 
 Call command again to stop posting to that channel.
 
-### `!!uWu!!` (Get One Image)
+### `get_one_image`
 You can also get one image by calling this command
 
 ### `reset_viewed`
@@ -51,6 +48,9 @@ less than 5
 ### `post_frequency [1-5]`
 How many times per day split evenly to post. Has to be a number 
 greater than 0 and less than 5
+
+### `health_check`
+Checks on the bot status by returning a message of "I'm Alive"
 
 ## Current Issues
 
