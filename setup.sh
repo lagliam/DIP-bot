@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mv sample_images images &&
-mv .env.example .env &&
+cp sample_images images &&
+cp .env.example .env &&
 mkdir guilds &&
 mkdir log

@@ -14,6 +14,7 @@ class App:
         self._bot = bot
 
     async def run(self):
+        database.create_startup_tables()
         channels = database.get_channels()
         channels_list = []
         for t in channels:
@@ -24,7 +25,6 @@ class App:
     @staticmethod
     def _startup_tasks(channels):
         utility.log_event('Bot starting')
-        database.create_startup_tables()
         tasks = []
         for channel in channels:
             if channel.type.name == 'private':
