@@ -12,7 +12,7 @@ def database_connection():
     config = {
         'user': os.getenv('DB_USER'),
         'password': os.getenv('DB_PASS'),
-        'host': 'localhost',
+        'host': '127.0.0.1',
         'database': 'db',
         'raise_on_warnings': True
     }
