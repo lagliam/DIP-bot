@@ -14,7 +14,6 @@ class App:
         self._bot = bot
 
     async def run(self):
-        database.create_startup_tables()
         channels = database.get_channels()
         channels_list = []
         for t in channels:

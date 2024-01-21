@@ -2,8 +2,27 @@
 version: "3"
 
 services:
+  db:
+    image: mysql
+    restart: always
+    container_name: db
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - ./db:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+
   dip-bot:
     build: .
+    depends_on:
+      - db
     restart: always
     container_name: bot
     volumes:
