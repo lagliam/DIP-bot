@@ -29,3 +29,4 @@ services:
       - ./log:/log
       - ./guilds:/guilds
       - ./images:/images
+    network_mode: "host"
