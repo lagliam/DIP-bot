@@ -21,6 +21,8 @@ Put your images in the `/images` folder
 
 Place token in `.env` file
 
+Update the variables in `.env` file with values to be used by the database
+
 ### Running Service
 
 ```bash

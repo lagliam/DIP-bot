@@ -131,5 +131,4 @@ guilds/
 get_git.sh
 *.out
 *.err
-motivashon/motivashon1.txt
-motivashon/motivashon2.txt
+db/
