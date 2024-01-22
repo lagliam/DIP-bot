@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 import discord
+from discord.ext import tasks
 from dotenv import load_dotenv
 
 from app.app import App
@@ -26,8 +27,14 @@ for cog in command_list:
 @bot.event
 async def on_ready():
     log_event(f'Hello! {bot.user.name} has connected to Discord! 0w0')
+
+
+@tasks.loop(count=1)
+async def primary_application_loop():
+    await bot.wait_until_ready()
     app = App(bot)
     await app.run()
 
 
+primary_application_loop.start()
 bot.run(TOKEN)
