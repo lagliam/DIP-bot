@@ -18,7 +18,7 @@ class MainLoop:
             if not self._restart:
                 sent = await self._send_images(database.get_posting_amount(self._channel_id))
                 if not sent:
-                    utility.log_event(f'Out of images for {self._guild_id}')
+                    utility.log_event(f'Out of images for guild {self._guild_id}')
                     await self._ctx.send(text.NO_MORE_TO_SEE)
                     database.delete_channel(self._channel_id)
                     break
@@ -26,7 +26,7 @@ class MainLoop:
                     database.set_last_post_date(self._channel_id, time.time())
             self._restart = False
             await self._wait()
-        utility.log_event(f'Stopped posting for server {self._guild_id} channel {self._channel_id}')
+        utility.log_event(f'Stopped posting for guild {self._guild_id} channel {self._channel_id}')
 
     async def _send_images(self, post_amount):
         sender = image_sender.ImageSender(self._ctx, self._guild_id)
