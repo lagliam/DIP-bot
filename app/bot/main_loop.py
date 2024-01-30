@@ -39,6 +39,13 @@ class MainLoop:
     async def _wait(self):
         last_post_date = datetime.fromtimestamp(float(database.get_last_post_date(self._channel_id)))
         start_waiting = (datetime.now() - last_post_date).total_seconds()
-        while start_waiting < (constants.TRIGGER_DURATION / int(database.get_posting_frequency(self._channel_id))):
+        while start_waiting < (self._trigger_time()):
             await asyncio.sleep(constants.POLL_INTERVAL)
             start_waiting += constants.POLL_INTERVAL
+
+    def _trigger_time(self):
+        try:
+            posting_freq = int(database.get_posting_frequency(self._channel_id))
+        except TypeError:
+            return 1
+        return constants.TRIGGER_DURATION / posting_freq
