@@ -2,6 +2,7 @@
 # DIP-bot
 # Author: Liam Goring
 
+import asyncio
 import os
 from pathlib import Path
 
@@ -31,7 +32,8 @@ async def on_ready():
 
 @tasks.loop(count=1)
 async def primary_application_loop():
-    await bot.wait_until_ready()
+    while not bot.is_ready():
+        await asyncio.sleep(0.1)
     app = App(bot)
     await app.run()
     log_event('----Primary Application Loop Stopped----')
