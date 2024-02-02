@@ -34,6 +34,7 @@ async def primary_application_loop():
     await bot.wait_until_ready()
     app = App(bot)
     await app.run()
+    log_event('----Primary Application Loop Stopped----')
 
 
 primary_application_loop.start()

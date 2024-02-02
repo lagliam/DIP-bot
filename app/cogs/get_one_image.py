@@ -20,7 +20,7 @@ class GetOneImage(commands.Cog):
         await ctx.respond(text.START_POSTING)
         sent = await image_sender.send_image()
         if not sent:
-            utility.log_event(f'Out of images for {guild_id}')
+            utility.log_event(f'Unable to send images for {guild_id}')
             await ctx.send(text.NO_MORE_TO_SEE)
 
 
