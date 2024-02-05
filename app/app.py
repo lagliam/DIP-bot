@@ -19,7 +19,9 @@ class App:
         for t in channels:
             channels_list.append(await self._bot.fetch_channel(t[0]))
         tasks = self._startup_tasks(channels_list)
+        utility.log_event(f'Found {len(tasks)} coroutines to start')
         await asyncio.gather(*tasks)
+        utility.log_event('Coroutines ended')
 
     @staticmethod
     def _startup_tasks(channels):
@@ -37,5 +39,4 @@ class App:
             }
             main_loop = MainLoop(params)
             tasks.append(main_loop.run())
-        utility.log_event(f'Found {len(tasks)} coroutines to start')
         return tasks

@@ -47,7 +47,7 @@ def get_file(file_list):
         try:
             filename = file_list.pop(random.randrange(len(file_list)))
         except ValueError:
-            log_event('All files are too big to send')
+            log_event('All files remaining are too big to send')
             filename = None
             break
     return filename
