@@ -16,17 +16,12 @@ class StartPosting:
     async def run(self):
         channel = database.get_channel(self._channel_id)
         if channel:
-            self._stop_posting()
-            await self._ctx.respond(text.STOP_POSTING)
+            await self._ctx.respond(text.START_POSTING_REPEAT)
             return
 
         await self._ctx.respond(text.START_POSTING)
         loop = self._start_posting()
         await asyncio.create_task(loop.run())
-
-    def _stop_posting(self):
-        utility.log_event(f'Stop posting called for guild {self._guild_id} channel {self._channel_id}')
-        database.delete_channel(self._channel_id)
 
     def _start_posting(self):
         database.start_posting_entry(self._channel_id, self._guild_id)

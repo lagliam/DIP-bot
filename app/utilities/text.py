@@ -3,6 +3,9 @@
 
 START_POSTING = "Here's a pic for you"
 START_POSTING_HELP = 'Starts posting images to the channel where the start posting command was called'
+START_POSTING_REPEAT = 'Posting has already been started for this channel'
+STOP_POSTING_HELP = 'Stops posting images in the channel where the command is called'
+STOP_POSTING_REPEAT = 'Posting has already been stopped for this channel'
 STOP_POSTING = 'Posting stopped'
 GET_IMAGE_HELP = 'Returns one picture and marks it as viewed'
 RESET_VIEWED_MESSAGE = 'Previously viewed have been added back into the mix -'
