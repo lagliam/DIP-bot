@@ -10,4 +10,8 @@ COPY .env .
 
 COPY ./app /app
 
+COPY ./alembic /alembic
+
+COPY alembic.ini .
+
 CMD ["python", "bot.py"]
