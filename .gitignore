@@ -132,3 +132,4 @@ get_git.sh
 *.out
 *.err
 db/
+alembic.ini
