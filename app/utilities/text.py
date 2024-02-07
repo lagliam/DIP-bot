@@ -1,12 +1,13 @@
 # text.py
 # contains the text constants for the project
 
-START_POSTING = "Here's a pic for you"
+START_POSTING = 'Posting started'
 START_POSTING_HELP = 'Starts posting images to the channel where the start posting command was called'
 START_POSTING_REPEAT = 'Posting has already been started for this channel'
 STOP_POSTING_HELP = 'Stops posting images in the channel where the command is called'
-STOP_POSTING_REPEAT = 'Posting has already been stopped for this channel'
+STOP_POSTING_REPEAT = 'Posting has not been started for this channel'
 STOP_POSTING = 'Posting stopped'
+GET_IMAGE = "Here's a pic for you"
 GET_IMAGE_HELP = 'Returns one picture and marks it as viewed'
 RESET_VIEWED_MESSAGE = 'Previously viewed have been added back into the mix -'
 RESET_VIEWED_HELP = 'Resets the list of previously viewed images back to zero'

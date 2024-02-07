@@ -14,7 +14,7 @@ class MainLoop:
         self._channel_id = self._ctx.id
 
     async def run(self):
-        while database.get_channel(self._channel_id):
+        while not database.is_channel_deleted(self._channel_id):
             if not self._restart:
                 sent = await self._send_images(database.get_posting_amount(self._channel_id))
                 if not sent:
@@ -38,7 +38,7 @@ class MainLoop:
     async def _wait(self):
         last_post_date = datetime.fromtimestamp(float(database.get_last_post_date(self._channel_id)))
         start_waiting = (datetime.now() - last_post_date).total_seconds()
-        while start_waiting < (self._trigger_time()):
+        while start_waiting < (self._trigger_time()) and not database.is_channel_deleted(self._channel_id):
             await asyncio.sleep(constants.POLL_INTERVAL)
             start_waiting += constants.POLL_INTERVAL
 

@@ -28,12 +28,21 @@ def get_channels():
     return result
 
 
+def get_active_channels():
+    conn = database_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT channel FROM guilds WHERE deleted = 0')
+    result = cur.fetchall()
+    conn.close()
+    return result
+
+
 def start_posting_entry(channel_id, guild_id):
-    defaults = (f'{channel_id}', f'{guild_id}', '1', '1', f'{time.time()}')
+    defaults = (f'{channel_id}', f'{guild_id}', '1', '1', f'{time.time()}', '0')
     conn = database_connection()
     try:
         cur = conn.cursor()
-        cur.execute("INSERT INTO guilds VALUES(%s,%s,%s,%s,%s);", defaults)
+        cur.execute("INSERT INTO guilds VALUES(%s,%s,%s,%s,%s,%s);", defaults)
         conn.commit()
         conn.close()
     except Exception as error:
@@ -78,7 +87,7 @@ def get_channel(channel_id):
 def delete_channel(channel_id):
     conn = database_connection()
     cur = conn.cursor()
-    cur.execute(f"DELETE FROM guilds WHERE channel = {channel_id}")
+    cur.execute(f"UPDATE guilds SET deleted = {True} WHERE channel = {channel_id}")
     conn.commit()
     conn.close()
 
@@ -132,6 +141,10 @@ def set_post_frequency(channel_id, amount):
     set_database_entry(channel_id, 'post_frequency', amount)
 
 
+def set_deleted_status(channel_id, status: bool):
+    set_database_entry(channel_id, 'deleted', status)
+
+
 def is_image_seen(filename, guild_id):
     conn = database_connection()
     cur = conn.cursor()
@@ -139,3 +152,10 @@ def is_image_seen(filename, guild_id):
     seen_count = cur.fetchone()[0]
     conn.close()
     return seen_count > 0
+
+
+def is_channel_deleted(channel_id):
+    deleted_status = get_database_entry(channel_id, 'deleted')
+    if deleted_status is None:
+        return True
+    return bool(deleted_status[0])

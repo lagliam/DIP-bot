@@ -14,7 +14,7 @@ class App:
         self._bot = bot
 
     async def run(self):
-        channels = database.get_channels()
+        channels = database.get_active_channels()
         channels_list = []
         for t in channels:
             channels_list.append(await self._bot.fetch_channel(t[0]))

@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from app.bot.image_sender import ImageSender
-from app.utilities import text, utility
+from app.utilities import text, utility, database
 
 
 class GetOneImage(commands.Cog):
@@ -17,11 +17,13 @@ class GetOneImage(commands.Cog):
         else:
             guild_id = ctx.channel.guild.id
         image_sender = ImageSender(ctx.channel, guild_id)
-        await ctx.respond(text.START_POSTING)
+        await ctx.respond(text.GET_IMAGE)
         sent = await image_sender.send_image()
         if not sent:
-            utility.log_event(f'Unable to send images for {guild_id}')
+            utility.log_event(f'Unable to send image to channel {ctx.channel.id}')
             await ctx.send(text.NO_MORE_TO_SEE)
+            if not database.is_channel_deleted(ctx.channel.id):
+                database.delete_channel(ctx.channel.id)
 
 
 def setup(bot):

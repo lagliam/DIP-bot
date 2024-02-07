@@ -11,7 +11,7 @@ class Stop(commands.Cog):
     @discord.command(description=text.STOP_POSTING_HELP)
     async def stop(self, ctx):
         await ctx.defer(ephemeral=True)
-        if not database.get_channel(ctx.channel.id):
+        if database.is_channel_deleted(ctx.channel.id):
             await ctx.respond(text.STOP_POSTING_REPEAT)
             return
         utility.log_event(f'Stop posting called for channel {ctx.channel.id}')
