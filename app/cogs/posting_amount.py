@@ -11,7 +11,7 @@ class PostingAmount(commands.Cog):
     @discord.command(description=text.POST_AMOUNT_HELP)
     async def posting_amount(self, ctx, amount: discord.Option(int, choices=[1, 2, 3, 4, 5])):
         await ctx.defer(ephemeral=True)
-        if not database.get_channel(ctx.channel.id):
+        if database.is_channel_deleted(ctx.channel.id):
             await ctx.respond(text.POSTING_NOT_STARTED)
             return
         if int(amount) > 5 or int(amount) < 0 or int(amount) == 0:

@@ -17,11 +17,13 @@ git clone https://github.com/lagliam/DIP-bot.git
 ```bash
 setup.sh
 ```
-Put your images in the `/images` folder
+* Put your images in the `/images` folder
 
-Place token in `.env` file
+* Place token in `.env` file
 
-Update the variables in `.env` file with values to be used by the database
+* Update the variables in `.env` file with values to be used by the database
+
+* Update the 'sqlalchemy.url' in `alembic.ini` with your database username and password
 
 ### Running Service
 
@@ -29,29 +31,35 @@ Update the variables in `.env` file with values to be used by the database
 docker-compose up -d
 ```
 
+### Running Migrations
+In order to update the database to the correct state run the following
+
+```bash
+docker exec -it bot alembic upgrade head
+```
+
 ## Usage
 
-### `start`
+### `/start`
 In the channel you want DIP-bot to post to call the command to start posting.
 
-Call command again to stop posting to that channel.
+### `/stop`
+Stops posting for the channel that it was called from
 
-### `get_one_image`
+### `/get_one_image`
 You can also get one image by calling this command
 
-### `reset_viewed`
+### `/reset_viewed`
 Delete the stored seen images file to allow previously seen images to be 
 posted again
 
-### `post_amount [1-5]`
-How many images to post at a time. Has to be a number greater than 0 and 
-less than 5
+### `/post_amount [1-5]`
+How many images to post at a time. 
 
-### `post_frequency [1-5]`
-How many times per day split evenly to post. Has to be a number 
-greater than 0 and less than 5
+### `/post_frequency [1-5]`
+How many times per day split evenly to post.
 
-### `health_check`
+### `/health_check`
 Checks on the bot status by returning a message of "I'm Alive"
 
 ## Current Issues
