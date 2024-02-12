@@ -10,9 +10,12 @@ class Start(commands.Cog):
         self.bot = bot
 
     @discord.command(description=text.START_POSTING_HELP)
-    async def start(self, ctx):
+    async def start(self,
+                    ctx,
+                    amount: discord.Option(int, choices=[1, 2, 3, 4, 5], description=text.POST_AMOUNT_HELP),
+                    frequency: discord.Option(int, choices=[1, 2, 3, 4, 5], description=text.CHANGE_FREQUENCY_HELP)):
         await ctx.defer(ephemeral=True)
-        start_command = StartPosting(ctx)
+        start_command = StartPosting(ctx, amount, frequency)
         await start_command.run()
 
 

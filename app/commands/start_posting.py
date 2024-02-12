@@ -5,8 +5,10 @@ from app.utilities import text, database, utility
 
 
 class StartPosting:
-    def __init__(self, ctx):
+    def __init__(self, ctx, amount, frequency):
         self._ctx = ctx
+        self.amount = amount
+        self.frequency = frequency
         self._channel_id = ctx.channel.id
         if ctx.channel.type.name == 'private':
             self._guild_id = ctx.user.id
@@ -22,6 +24,8 @@ class StartPosting:
         if not channel:
             new_channel = True
             database.start_posting_entry(self._channel_id, self._guild_id)
+        database.set_post_amount(self._channel_id, self.amount)
+        database.set_post_frequency(self._channel_id, self.frequency)
         database.set_deleted_status(self._channel_id, False)
         await self._ctx.respond(text.START_POSTING)
         loop = self._start_posting(new_channel)
