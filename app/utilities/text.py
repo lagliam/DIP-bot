@@ -21,3 +21,4 @@ NO_MORE_TO_SEE = '(o･｀Д´･o)! No more images to see'
 HEALTH_CHECK_HELP = "Responds with \"I'm Alive\" if running"
 HEALTH_CHECK_RESPONSE = "I'm alive!"
 POSTING_NOT_STARTED = 'Posting has not started for this channel'
+NEXT_POST_DETAILS_HELP = 'How many images and how long until the next post is in minutes'
