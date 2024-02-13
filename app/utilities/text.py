@@ -23,3 +23,4 @@ HEALTH_CHECK_RESPONSE = "I'm alive!"
 POSTING_NOT_STARTED = 'Posting has not started for this channel'
 NEXT_POST_DETAILS_HELP = 'How many images and how long until the next post is in minutes'
 STATS_HELP = 'Stats about the bot interactions'
+PREVIEW_HELP = 'See a preview of images this bot will post'
