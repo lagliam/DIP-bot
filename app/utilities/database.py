@@ -31,14 +31,14 @@ def get_channels():
 def get_active_channels():
     conn = database_connection()
     cur = conn.cursor()
-    cur.execute('SELECT channel FROM guilds WHERE deleted = 0')
+    cur.execute(f'SELECT channel FROM guilds WHERE deleted = {False}')
     result = cur.fetchall()
     conn.close()
     return result
 
 
 def start_posting_entry(channel_id, guild_id):
-    defaults = (f'{channel_id}', f'{guild_id}', '1', '1', f'{time.time()}', '0')
+    defaults = (f'{channel_id}', f'{guild_id}', '1', '1', f'{time.time()}', False)
     conn = database_connection()
     try:
         cur = conn.cursor()
@@ -53,7 +53,7 @@ def start_posting_entry(channel_id, guild_id):
 def write_viewed_image_list_for_guild(filename, guild_id):
     conn = database_connection()
     cur = conn.cursor()
-    cur.execute(f"INSERT INTO images VALUES('{guild_id}', '{filename}')")
+    cur.execute(f"INSERT INTO images VALUES('{guild_id}', '{filename}', {False})")
     conn.commit()
     conn.close()
 
@@ -61,7 +61,7 @@ def write_viewed_image_list_for_guild(filename, guild_id):
 def get_seen_images(guild):
     conn = database_connection()
     cur = conn.cursor()
-    cur.execute(f"SELECT image FROM images WHERE guild = {guild}")
+    cur.execute(f"SELECT image FROM images WHERE guild = {guild} AND deleted = {False}")
     result = cur.fetchall()
     conn.close()
     return result
@@ -70,7 +70,7 @@ def get_seen_images(guild):
 def delete_seen_by_guild(guild_id):
     conn = database_connection()
     cur = conn.cursor()
-    cur.execute(f"DELETE FROM images WHERE guild = {guild_id}")
+    cur.execute(f"UPDATE images SET deleted = {True} WHERE guild = {guild_id}")
     conn.commit()
     conn.close()
 
@@ -121,14 +121,6 @@ def get_last_post_date(channel_id):
     return get_database_entry(channel_id, 'last_post')[0]
 
 
-def get_all_seen_status(channel_id):
-    return get_database_entry(channel_id, 'all_seen')[0] == '1'
-
-
-def set_all_seen_status(channel_id, status):
-    set_database_entry(channel_id, 'all_seen', status)
-
-
 def set_last_post_date(channel_id, date):
     set_database_entry(channel_id, 'last_post', date)
 
@@ -148,7 +140,7 @@ def set_deleted_status(channel_id, status: bool):
 def is_image_seen(filename, guild_id):
     conn = database_connection()
     cur = conn.cursor()
-    cur.execute(f"SELECT COUNT(*) FROM images WHERE image = '{filename}' AND guild = {guild_id}")
+    cur.execute(f"SELECT COUNT(*) FROM images WHERE image = '{filename}' AND guild = {guild_id} AND deleted = {False}")
     seen_count = cur.fetchone()[0]
     conn.close()
     return seen_count > 0
@@ -159,3 +151,21 @@ def is_channel_deleted(channel_id):
     if deleted_status is None:
         return True
     return bool(deleted_status[0])
+
+
+def total_images_sent_to_guild(guild_id):
+    conn = database_connection()
+    cur = conn.cursor()
+    cur.execute(f"SELECT COUNT(*) FROM images WHERE guild = {guild_id}")
+    seen_count = cur.fetchone()[0]
+    conn.close()
+    return seen_count
+
+
+def channels_posting_to_per_guild(guild_id):
+    conn = database_connection()
+    cur = conn.cursor()
+    cur.execute(f"SELECT channel FROM guilds WHERE guild = {guild_id}")
+    channels = cur.fetchall()
+    conn.close()
+    return channels
