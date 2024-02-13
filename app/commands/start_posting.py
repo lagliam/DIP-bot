@@ -32,7 +32,10 @@ class StartPosting:
         await asyncio.create_task(loop.run())
 
     def _start_posting(self, is_new_channel: bool):
-        utility.log_event(f'Started posting for guild {self._guild_id} channel {self._channel_id}')
+        if is_new_channel:
+            utility.log_event(f'Started posting for guild {self._guild_id} channel {self._channel_id}')
+        else:
+            utility.log_event(f'Restarted posting for guild {self._guild_id} channel {self._channel_id}')
         return MainLoop({
             'ctx': self._ctx.channel,
             'guild_id': self._guild_id,
