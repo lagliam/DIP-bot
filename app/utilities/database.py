@@ -1,5 +1,6 @@
 # database.py
 # Contains the database manipulation functions
+import datetime
 import os
 import time
 
@@ -169,3 +170,52 @@ def channels_posting_to_per_guild(guild_id):
     channels = cur.fetchall()
     conn.close()
     return channels
+
+
+def add_liked_image(parameters):
+    conn = database_connection()
+    cur = conn.cursor()
+    now = datetime.datetime.now()
+    find_sql = (f"SELECT id FROM liked_images "
+                f"WHERE filename = '{parameters['filename']}' AND guild_id = {parameters['guild_id']} AND channel_id = {parameters['channel_id']}")
+    cur.execute(find_sql)
+    found_record_id = cur.fetchone()
+    if found_record_id:
+        update_sql = f"UPDATE liked_images SET counter = counter + 1, updated = '{now}' WHERE id = {found_record_id[0]}"
+        cur.execute(update_sql)
+    else:
+        insert_sql = (f"INSERT INTO liked_images (filename, guild_id, channel_id, counter, updated) "
+                      f"VALUES("
+                      f"'{parameters['filename']}', "
+                      f"{parameters['guild_id']}, "
+                      f"{parameters['channel_id']}, "
+                      f"1, "
+                      f"'{now}'"
+                      f")")
+        cur.execute(insert_sql)
+    conn.commit()
+    conn.close()
+
+
+def remove_liked_image(parameters):
+    conn = database_connection()
+    cur = conn.cursor()
+    now = datetime.datetime.now()
+    find_sql = (f"SELECT id FROM liked_images "
+                f"WHERE filename = '{parameters['filename']}' AND guild_id = {parameters['guild_id']} AND channel_id = {parameters['channel_id']}")
+    cur.execute(find_sql)
+    found_record_id = cur.fetchone()
+    if found_record_id:
+        update_sql = f"UPDATE liked_images SET counter = counter - 1, updated = '{now}' WHERE id = {found_record_id[0]}"
+        cur.execute(update_sql)
+        conn.commit()
+    conn.close()
+
+
+def get_top_liked_file(guild_id, channel_id):
+    conn = database_connection()
+    cur = conn.cursor()
+    sql_liked = f"SELECT filename, counter FROM liked_images WHERE guild_id = {guild_id} AND channel_id = {channel_id}"
+    cur.execute(sql_liked)
+    liked_images = cur.fetchall()
+    return sorted(liked_images, key=lambda x: x[1], reverse=True)[0][0]
