@@ -6,7 +6,7 @@ import time
 
 import mysql.connector
 
-from app.utilities import utility
+from app.utilities import utility, constants
 
 
 def database_connection():
@@ -275,3 +275,11 @@ def check_private_permissions(user_id):
     if not found_record:
         return False
     return found_record[0] == 3
+
+
+def reset_last_viewed_for_channel(channel_id):
+    last_post_date = datetime.datetime.fromtimestamp(float(get_last_post_date(channel_id)))
+    posting_freq = int(get_posting_frequency(channel_id))
+    next_post_timer = constants.TRIGGER_DURATION / posting_freq
+    trigger_time = (last_post_date.timestamp() - next_post_timer) + constants.POLL_INTERVAL
+    set_database_entry(channel_id, 'last_post', trigger_time)
