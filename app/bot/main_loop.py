@@ -36,11 +36,8 @@ class MainLoop:
         return True
 
     async def _wait(self):
-        last_post_date = datetime.fromtimestamp(float(database.get_last_post_date(self._channel_id)))
-        start_waiting = (datetime.now() - last_post_date).total_seconds()
-        while start_waiting < (self._trigger_time()) and not database.is_channel_deleted(self._channel_id):
+        while self._start_waiting() < (self._trigger_time()) and not database.is_channel_deleted(self._channel_id):
             await asyncio.sleep(constants.POLL_INTERVAL)
-            start_waiting += constants.POLL_INTERVAL
 
     def _trigger_time(self):
         try:
@@ -48,3 +45,7 @@ class MainLoop:
         except TypeError:
             return 1
         return constants.TRIGGER_DURATION / posting_freq
+
+    def _start_waiting(self):
+        last_post_date = datetime.fromtimestamp(float(database.get_last_post_date(self._channel_id)))
+        return (datetime.now() - last_post_date).total_seconds()
