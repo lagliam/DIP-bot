@@ -218,4 +218,60 @@ def get_top_liked_file(guild_id, channel_id):
     sql_liked = f"SELECT filename, counter FROM liked_images WHERE guild_id = {guild_id} AND channel_id = {channel_id}"
     cur.execute(sql_liked)
     liked_images = cur.fetchall()
+    conn.close()
     return sorted(liked_images, key=lambda x: x[1], reverse=True)[0][0]
+
+
+def add_user(user_id, user_name, guild_id):
+    now = datetime.datetime.now()
+    conn = database_connection()
+    cur = conn.cursor()
+    find_sql = (f"SELECT id FROM users "
+                f"WHERE user_id = '{user_id}' AND guild_id = {guild_id}")
+    cur.execute(find_sql)
+    found_user = cur.fetchone()
+    if not found_user:
+        cur.execute(f"INSERT INTO users (user_id, user_name, guild_id, bot_permissions, updated, created) "
+                    f"VALUES('{user_id}', '{user_name}', '{guild_id}', 2, '{now}', '{now}')")
+        conn.commit()
+    else:
+        cur.execute(f"UPDATE users SET bot_permissions = 2, updated = '{now}' "
+                    f"WHERE id = {found_user[0]}")
+        conn.commit()
+    conn.close()
+
+
+def remove_user(user_id, guild_id):
+    now = datetime.datetime.now()
+    conn = database_connection()
+    cur = conn.cursor()
+    cur.execute(f"UPDATE users SET bot_permissions = 1, updated = '{now}' "
+                f"WHERE user_id = {user_id} AND guild_id = {guild_id}")
+    conn.commit()
+    conn.close()
+
+
+def check_guild_permissions(user_id, guild_id):
+    find_sql = (f"SELECT bot_permissions FROM users "
+                f"WHERE user_id = '{user_id}' AND guild_id = {guild_id}")
+    conn = database_connection()
+    cur = conn.cursor()
+    cur.execute(find_sql)
+    found_record = cur.fetchone()
+    conn.close()
+    if not found_record:
+        return False
+    return found_record[0] >= 2
+
+
+def check_private_permissions(user_id):
+    find_sql = (f"SELECT bot_permissions FROM users "
+                f"WHERE user_id = '{user_id}' AND guild_id = NULL")
+    conn = database_connection()
+    cur = conn.cursor()
+    cur.execute(find_sql)
+    found_record = cur.fetchone()
+    conn.close()
+    if not found_record:
+        return False
+    return found_record[0] == 3

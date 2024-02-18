@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column('filename', sa.String(255), nullable=False),
         sa.Column('guild_id', sa.BIGINT, nullable=False),
         sa.Column('channel_id', sa.BIGINT, nullable=False),
-        sa.Column('counter', sa.Integer, nullable=False, default=1),
+        sa.Column('counter', sa.Integer, nullable=False, server_default='1'),
         sa.Column('updated', sa.DateTime, nullable=False),
     )
 

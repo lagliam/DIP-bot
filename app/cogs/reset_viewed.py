@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from app.utilities import text, database
+from app.utilities import text, database, utility
 
 
 class ResetViewed(commands.Cog):
@@ -11,6 +11,8 @@ class ResetViewed(commands.Cog):
     @discord.command(description=text.RESET_VIEWED_HELP)
     async def reset_viewed(self, ctx):
         await ctx.defer(ephemeral=True)
+        if not await utility.check_permissions(ctx, self.bot):
+            return
         if ctx.channel.type.name == 'private':
             guild_id = ctx.user.id
         else:
