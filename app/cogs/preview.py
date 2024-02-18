@@ -34,6 +34,8 @@ class Preview(commands.Cog):
     @discord.command(description=text.PREVIEW_HELP)
     async def preview(self, ctx):
         await ctx.defer(ephemeral=True)
+        if not await utility.check_permissions(ctx, self.bot):
+            return
         filename = get_image_filename()
         if not filename:
             await ctx.respond('No images to preview')

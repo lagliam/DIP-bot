@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from app.utilities import text, database, constants
+from app.utilities import text, database, constants, utility
 
 
 class GetTopLiked(commands.Cog):
@@ -11,6 +11,8 @@ class GetTopLiked(commands.Cog):
     @discord.command(description=text.TOP_LIKED_HELP)
     async def get_top_liked(self, ctx):
         await ctx.defer(ephemeral=True)
+        if not await utility.check_permissions(ctx, self.bot):
+            return
         if ctx.channel.type.name == 'private':
             guild_id = ctx.user.id
         else:

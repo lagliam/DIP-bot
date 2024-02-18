@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from app.commands.start_posting import StartPosting
-from app.utilities import text
+from app.utilities import text, utility
 
 
 class Start(commands.Cog):
@@ -15,6 +15,8 @@ class Start(commands.Cog):
                     amount: discord.Option(int, choices=[1, 2, 3, 4, 5], description=text.POST_AMOUNT_HELP),
                     frequency: discord.Option(int, choices=[1, 2, 3, 4, 5], description=text.CHANGE_FREQUENCY_HELP)):
         await ctx.defer(ephemeral=True)
+        if not await utility.check_permissions(ctx, self.bot):
+            return
         start_command = StartPosting(ctx, amount, frequency)
         await start_command.run()
 

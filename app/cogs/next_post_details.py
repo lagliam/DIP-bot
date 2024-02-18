@@ -3,7 +3,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from app.utilities import text, database, constants
+from app.utilities import text, database, constants, utility
 
 
 class NextPostDetails(commands.Cog):
@@ -13,6 +13,8 @@ class NextPostDetails(commands.Cog):
     @discord.command(description=text.NEXT_POST_DETAILS_HELP)
     async def next_post_details(self, ctx):
         await ctx.defer(ephemeral=True)
+        if not await utility.check_permissions(ctx, self.bot):
+            return
         if database.is_channel_deleted(ctx.channel.id):
             await ctx.respond(text.POSTING_NOT_STARTED)
             return

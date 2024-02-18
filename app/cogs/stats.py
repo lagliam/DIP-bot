@@ -11,6 +11,8 @@ class Stats(commands.Cog):
     @discord.command(description=text.STATS_HELP)
     async def stats(self, ctx):
         await ctx.defer(ephemeral=True)
+        if not await utility.check_permissions(ctx, self.bot):
+            return
         if ctx.channel.type.name == 'private':
             guild_id = ctx.user.id
             guild_name = 'Private Messages'

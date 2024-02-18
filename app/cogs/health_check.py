@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from app.utilities import text
+from app.utilities import text, utility
 
 
 class HealthCheck(commands.Cog):
@@ -11,7 +11,8 @@ class HealthCheck(commands.Cog):
     @discord.command(description=text.HEALTH_CHECK_HELP)
     async def health_check(self, ctx):
         await ctx.defer(ephemeral=True)
-        await ctx.respond(text.HEALTH_CHECK_RESPONSE)
+        if await utility.check_permissions(ctx, self.bot):
+            await ctx.respond(text.HEALTH_CHECK_RESPONSE)
 
 
 def setup(bot):

@@ -12,6 +12,8 @@ class GetOneImage(commands.Cog):
     @discord.command(description=text.GET_IMAGE_HELP)
     async def get_one_image(self, ctx):
         await ctx.defer(ephemeral=True)
+        if not await utility.check_permissions(ctx, self.bot):
+            return
         if ctx.channel.type.name == 'private':
             guild_id = ctx.user.id
         else:
