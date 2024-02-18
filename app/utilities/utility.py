@@ -5,7 +5,7 @@ import logging
 import os
 import random
 
-from app.utilities import constants
+from app.utilities import constants, database, text
 
 
 def get_cogs():
@@ -55,3 +55,20 @@ def get_file(file_list):
 
 def is_large_file(filepath):
     return os.path.getsize(filepath) > constants.LIMIT_SIZE
+
+
+def is_private_channel(ctx):
+    return ctx.channel.type.name == 'private'
+
+
+async def check_permissions(ctx, bot):
+    if await bot.is_owner(ctx.author):
+        return True
+    if is_private_channel(ctx) and not database.check_private_permissions(ctx.author.id):
+        await ctx.respond(text.PRIVATE_PERMISSIONS)
+        return False
+    if (not is_private_channel(ctx) and not database.check_guild_permissions(ctx.author.id, ctx.guild.id)
+            and ctx.author != ctx.guild.owner):
+        await ctx.respond(text.PERMISSIONS)
+        return False
+    return True
