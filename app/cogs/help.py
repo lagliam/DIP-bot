@@ -6,11 +6,29 @@ from app.utilities import text, utility
 
 
 class Help(commands.Cog):
+    """
+    Class used to represent a Help
+    """
+
     def __init__(self, bot: discord.Bot) -> None:
+        """
+        Parameters
+        ----------
+        :param bot: The bot object
+        :type bot: discord.Bot
+        """
+
         self.bot = bot
 
     @discord.command(description=text.HELP_HELP)
     async def help(self, ctx: ApplicationContext) -> None:
+        """
+        Displays a help message with info on the bot
+
+        :param ctx: The context object
+        :type ctx: ApplicationContext
+        """
+
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
