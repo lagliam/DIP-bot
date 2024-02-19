@@ -1,19 +1,20 @@
 from datetime import datetime
 
 import discord
+from discord import ApplicationContext
 from discord.ext import commands
 
 from app.utilities import text, database, constants, utility
 
 
 class PostingCommands(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
 
     posting_commands = discord.SlashCommandGroup('posts', 'Part of the image posting features')
 
     @posting_commands.command(description=text.NEXT_POST_DETAILS_HELP)
-    async def next_post_details(self, ctx):
+    async def next_post_details(self, ctx: ApplicationContext) -> None:
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -28,7 +29,7 @@ class PostingCommands(commands.Cog):
         await ctx.respond(f'The next post of {post_amount} image(s) will be in {int(minutes_to_next_post)} minutes')
 
     @posting_commands.command(description=text.POST_AMOUNT_HELP)
-    async def posting_amount(self, ctx, amount: discord.Option(int, choices=[1, 2, 3, 4, 5])):
+    async def posting_amount(self, ctx: ApplicationContext, amount: discord.Option(int, choices=[1, 2, 3, 4, 5])) -> None:
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -39,14 +40,14 @@ class PostingCommands(commands.Cog):
         await ctx.respond(text.POST_AMOUNT_END)
 
     @posting_commands.command(description=text.RESET_LAST_VIEWED_HELP)
-    async def reset_last_viewed(self, ctx):
+    async def reset_last_viewed(self, ctx: ApplicationContext) -> None:
         await ctx.defer(ephemeral=True)
         if await utility.check_permissions(ctx, self.bot):
             database.reset_last_viewed_for_channel(ctx.channel.id)
             await ctx.respond(text.RESET_LAST_VIEWED_RESPONSE)
 
     @posting_commands.command(description=text.RESET_VIEWED_HELP)
-    async def reset_viewed(self, ctx):
+    async def reset_viewed(self, ctx: ApplicationContext) -> None:
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -58,7 +59,7 @@ class PostingCommands(commands.Cog):
         await ctx.respond(text.RESET_VIEWED_MESSAGE)
 
     @posting_commands.command(description=text.STATS_HELP)
-    async def stats(self, ctx):
+    async def stats(self, ctx: ApplicationContext) -> None:
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -86,7 +87,7 @@ class PostingCommands(commands.Cog):
         await ctx.respond('', embed=embed)
 
     @posting_commands.command(description=text.CHANGE_FREQUENCY_HELP)
-    async def change_frequency(self, ctx, amount: discord.Option(int, choices=[1, 2, 3, 4, 5])):
+    async def change_frequency(self, ctx: ApplicationContext, amount: discord.Option(int, choices=[1, 2, 3, 4, 5])) -> None:
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -97,5 +98,5 @@ class PostingCommands(commands.Cog):
         await ctx.respond(text.CHANGE_FREQUENCY_END)
 
 
-def setup(bot):
+def setup(bot: discord.Bot) -> None:
     bot.add_cog(PostingCommands(bot))

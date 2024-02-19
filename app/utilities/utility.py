@@ -6,12 +6,15 @@ import os
 import random
 
 from pathlib import Path
+
+import discord
 from PIL import Image
+from discord import ApplicationContext
 
 from app.utilities import constants, database, text
 
 
-def get_cogs():
+def get_cogs() -> list:
     directory_contents = os.listdir('app/cogs')
     cogs = []
     for content in directory_contents:
@@ -20,7 +23,7 @@ def get_cogs():
     return cogs
 
 
-def image_list(directory):
+def image_list(directory) -> list[str]:
     images = []
     for filename in os.listdir(directory):
         if (filename.lower().endswith(".jpg")
@@ -34,7 +37,7 @@ def image_list(directory):
     return images
 
 
-def log_event(message):
+def log_event(message: str) -> None:
     logging.basicConfig(
         handlers=[logging.FileHandler('log/dip-bot.log'), logging.StreamHandler()],
         format='%(asctime)s - %(message)s',
@@ -43,7 +46,7 @@ def log_event(message):
     logging.info(message)
 
 
-def get_file(file_list):
+def get_file(file_list) -> str | None:
     filename = file_list.pop(random.randrange(len(file_list)))
     while is_large_file(constants.IMAGES_PATH + filename):
         log_event(f'Image {filename} too large to send, attempting to compress')
@@ -59,11 +62,11 @@ def get_file(file_list):
     return filename
 
 
-def is_large_file(filepath):
+def is_large_file(filepath: str) -> bool:
     return os.path.getsize(filepath) > constants.LIMIT_SIZE
 
 
-def compress_under_size(size, file_path):
+def compress_under_size(size: int, file_path: str):
     if Path(file_path).suffix == '.png':
         log_event(f'Cannot reduce file size of PNGs, skipping {file_path}')
         raise ValueError('File cannot be reduced')
@@ -78,16 +81,16 @@ def compress_under_size(size, file_path):
         quality -= 45
 
 
-def compress_pic(file_path, quality):
+def compress_pic(file_path: str, quality: int):
     picture = Image.open(file_path)
     picture.save(file_path, optimize=True, quality=quality)
 
 
-def is_private_channel(ctx):
+def is_private_channel(ctx: ApplicationContext):
     return ctx.channel.type.name == 'private'
 
 
-async def check_permissions(ctx, bot):
+async def check_permissions(ctx: ApplicationContext, bot: discord.Bot):
     if await bot.is_owner(ctx.author):
         return True
     if is_private_channel(ctx) and not database.check_private_permissions(ctx.author.id):

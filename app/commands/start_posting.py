@@ -1,11 +1,13 @@
 import asyncio
 
+from discord import ApplicationContext
+
 from app.bot.main_loop import MainLoop
 from app.utilities import text, database, utility
 
 
 class StartPosting:
-    def __init__(self, ctx, amount, frequency):
+    def __init__(self, ctx: ApplicationContext, amount: int, frequency: int):
         self._ctx = ctx
         self.amount = amount
         self.frequency = frequency
@@ -15,7 +17,7 @@ class StartPosting:
         else:
             self._guild_id = ctx.channel.guild.id
 
-    async def run(self):
+    async def run(self) -> None:
         if not database.is_channel_deleted(self._channel_id):
             await self._ctx.respond(text.START_POSTING_REPEAT)
             return
@@ -31,7 +33,7 @@ class StartPosting:
         loop = self._start_posting(new_channel)
         await asyncio.create_task(loop.run())
 
-    def _start_posting(self, is_new_channel: bool):
+    def _start_posting(self, is_new_channel: bool) -> MainLoop:
         if is_new_channel:
             utility.log_event(f'Started posting for guild {self._guild_id} channel {self._channel_id}')
         else:

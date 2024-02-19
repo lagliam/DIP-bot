@@ -5,6 +5,7 @@
 import asyncio
 import os
 from pathlib import Path
+from typing import Dict
 
 import discord
 from discord.ext import tasks
@@ -27,25 +28,25 @@ for cog in command_list:
 
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
     log_event(f'Hello! {bot.user.name} has connected to Discord! 0w0')
 
 
 @bot.event
-async def on_raw_reaction_add(payload):
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent) -> None:
     parameters = await extract_parameters(payload)
     if parameters:
         database.add_liked_image(parameters)
 
 
 @bot.event
-async def on_raw_reaction_remove(payload):
+async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent) -> None:
     parameters = await extract_parameters(payload)
     if parameters:
         database.remove_liked_image(parameters)
 
 
-async def extract_parameters(payload):
+async def extract_parameters(payload: discord.RawReactionActionEvent) -> dict[str, int | None | str] | None:
     guild_id = payload.guild_id
     channel_id = payload.channel_id
     partial_messageable = bot.get_partial_messageable(channel_id)
@@ -59,7 +60,7 @@ async def extract_parameters(payload):
 
 
 @tasks.loop(count=1)
-async def primary_application_loop():
+async def primary_application_loop() -> None:
     while not bot.is_ready():
         await asyncio.sleep(0.1)
     app = App(bot)

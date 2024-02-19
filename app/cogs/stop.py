@@ -1,15 +1,16 @@
 import discord
+from discord import ApplicationContext
 from discord.ext import commands
 
 from app.utilities import text, database, utility
 
 
 class Stop(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
 
     @discord.command(description=text.STOP_POSTING_HELP)
-    async def stop(self, ctx):
+    async def stop(self, ctx: ApplicationContext) -> None:
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -21,5 +22,5 @@ class Stop(commands.Cog):
         await ctx.respond(text.STOP_POSTING)
 
 
-def setup(bot):
+def setup(bot: discord.Bot) -> None:
     bot.add_cog(Stop(bot))

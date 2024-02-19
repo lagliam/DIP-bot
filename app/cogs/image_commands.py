@@ -1,4 +1,5 @@
 import discord
+from discord import ApplicationContext
 from discord.ext import commands
 
 from app.bot.image_sender import ImageSender
@@ -19,7 +20,7 @@ class PreviewView(discord.ui.View):
                                                                   discord.File(constants.IMAGES_PATH + image3)])
 
 
-def get_image_filename():
+def get_image_filename() -> str | None:
     images_list = utility.image_list(constants.IMAGES_PATH)
     if len(images_list) == 0:
         utility.log_event('No images in directory')
@@ -29,13 +30,13 @@ def get_image_filename():
 
 
 class ImageCommands(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
 
     image_commands = discord.SlashCommandGroup('images', 'Part of the images features')
 
     @image_commands.command(description=text.GET_IMAGE_HELP)
-    async def get_one_image(self, ctx):
+    async def get_one_image(self, ctx: ApplicationContext) -> None:
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -53,7 +54,7 @@ class ImageCommands(commands.Cog):
                 database.delete_channel(ctx.channel.id)
 
     @image_commands.command(description=text.PREVIEW_HELP)
-    async def preview(self, ctx):
+    async def preview(self, ctx: ApplicationContext) -> None:
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -64,7 +65,7 @@ class ImageCommands(commands.Cog):
             await ctx.respond(view=PreviewView(), file=discord.File(constants.IMAGES_PATH + filename))
 
     @image_commands.command(description=text.TOP_LIKED_HELP)
-    async def get_top_liked(self, ctx):
+    async def get_top_liked(self, ctx: ApplicationContext) -> None:
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -76,5 +77,5 @@ class ImageCommands(commands.Cog):
         await ctx.respond('', file=discord.File(constants.IMAGES_PATH + filename))
 
 
-def setup(bot):
+def setup(bot: discord.Bot) -> None:
     bot.add_cog(ImageCommands(bot))
