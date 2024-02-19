@@ -133,3 +133,4 @@ get_git.sh
 *.err
 db/
 alembic.ini
+reported_images/

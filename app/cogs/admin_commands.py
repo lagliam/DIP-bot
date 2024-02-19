@@ -1,7 +1,8 @@
 import discord
-from discord import ApplicationContext
+from discord import ApplicationContext, NotFound
 from discord.ext import commands
 
+from app.commands.report import Report
 from app.utilities import text, utility, database
 
 
@@ -41,6 +42,31 @@ class AdminCommands(commands.Cog):
             return
         database.remove_user(user.id, ctx.guild.id)
         await ctx.respond(text.REMOVE_USER_RESPONSE)
+
+    @admin.command(description=text.REPORT_HELP)
+    @commands.cooldown(1, 15, commands.BucketType.user)
+    async def report(self, ctx: ApplicationContext, message_id: str) -> None:
+        await ctx.defer(ephemeral=True)
+        try:
+            message = await ctx.fetch_message(int(message_id))
+        except NotFound:
+            await ctx.respond(text.REPORT_UNABLE_TO_FIND)
+            return
+        if message.author == self.bot.user:
+            report = Report(message)
+            status = await report.log()
+            if status:
+                await ctx.respond(text.REPORT_SENT)
+            else:
+                await ctx.respond(text.REPORT_FAILED)
+        else:
+            await ctx.respond(text.REPORT_NOT_A_BOT_MESSAGE)
+
+    @report.error
+    async def on_command_error(self, ctx: ApplicationContext, error):
+        if isinstance(error, discord.ext.commands.CommandOnCooldown):
+            await ctx.defer(ephemeral=True)
+            await ctx.respond(f'This command is on cooldown, you can use it in {round(error.retry_after, 2)}s')
 
 
 def setup(bot: discord.Bot) -> None:
