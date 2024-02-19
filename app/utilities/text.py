@@ -1,5 +1,4 @@
-# text.py
-# contains the text constants for the project
+"""Contains the text constants for the project"""
 
 START_POSTING = 'Posting started'
 START_POSTING_HELP = 'Starts posting images to the channel where the start posting command was called'
