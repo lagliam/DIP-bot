@@ -34,4 +34,5 @@ services:
       - ./log:/log
       - ./guilds:/guilds
       - ./images:/images
+      - ./reported_images:/reported_images
     network_mode: "host"
