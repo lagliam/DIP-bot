@@ -35,3 +35,4 @@ PRIVATE_PERMISSIONS = 'You do not have permission to send private commands to th
 RESET_LAST_VIEWED_HELP = 'Resets the last time an image was sent so that new images will be sent to the channel'
 RESET_LAST_VIEWED_RESPONSE = 'Last viewed time has been reset, expect new posts within the next 5 minutes'
 DENY_PRIVATE_MESSAGES = 'You cannot use this command in a private message'
+HELP_HELP = 'Displays a help message'
