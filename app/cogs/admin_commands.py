@@ -17,18 +17,22 @@ class AdminCommands(commands.Cog):
             await ctx.respond(text.HEALTH_CHECK_RESPONSE)
 
     @admin.command(description=text.ADD_USER_HELP)
-    @discord.guild_only()
     async def add_user(self, ctx, user: discord.Member):
         await ctx.defer(ephemeral=True)
+        if utility.is_private_channel(ctx):
+            await ctx.respond(text.DENY_PRIVATE_MESSAGES)
+            return
         if not await utility.check_permissions(ctx, self.bot):
             return
         database.add_user(user.id, user.name, ctx.guild.id)
         await ctx.respond(text.ADD_USER_RESPONSE)
 
     @admin.command(description=text.REMOVE_USER_HELP)
-    @discord.guild_only()
     async def remove_user(self, ctx, user: discord.Member):
         await ctx.defer(ephemeral=True)
+        if utility.is_private_channel(ctx):
+            await ctx.respond(text.DENY_PRIVATE_MESSAGES)
+            return
         if not await utility.check_permissions(ctx, self.bot):
             return
         if user.id == ctx.guild.owner:
