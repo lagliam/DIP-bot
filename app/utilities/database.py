@@ -5,11 +5,13 @@ import os
 import time
 
 import mysql.connector
+from mysql.connector.abstracts import MySQLConnectionAbstract
+from mysql.connector.pooling import PooledMySQLConnection
 
 from app.utilities import utility, constants
 
 
-def database_connection():
+def database_connection() ->  PooledMySQLConnection | MySQLConnectionAbstract:
     config = {
         'user': os.getenv('DB_USER'),
         'password': os.getenv('DB_PASS'),
@@ -20,7 +22,7 @@ def database_connection():
     return mysql.connector.connect(**config)
 
 
-def get_channels():
+def get_channels() -> list:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute('SELECT channel FROM guilds')
@@ -29,7 +31,7 @@ def get_channels():
     return result
 
 
-def get_active_channels():
+def get_active_channels() -> list[tuple]:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f'SELECT channel FROM guilds WHERE deleted = {False}')
@@ -38,7 +40,7 @@ def get_active_channels():
     return result
 
 
-def start_posting_entry(channel_id, guild_id):
+def start_posting_entry(channel_id: int, guild_id: int) -> None:
     defaults = (f'{channel_id}', f'{guild_id}', '1', '1', f'{time.time()}', False)
     conn = database_connection()
     try:
@@ -51,7 +53,7 @@ def start_posting_entry(channel_id, guild_id):
         utility.log_event(f"Error while adding to db for guild {guild_id} {error}")
 
 
-def write_viewed_image_list_for_guild(filename, guild_id):
+def write_viewed_image_list_for_guild(filename: str, guild_id: int) -> None:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"INSERT INTO images VALUES('{guild_id}', '{filename}', {False})")
@@ -59,7 +61,7 @@ def write_viewed_image_list_for_guild(filename, guild_id):
     conn.close()
 
 
-def get_seen_images(guild):
+def get_seen_images(guild: int) -> list:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT image FROM images WHERE guild = {guild} AND deleted = {False}")
@@ -68,7 +70,7 @@ def get_seen_images(guild):
     return result
 
 
-def delete_seen_by_guild(guild_id):
+def delete_seen_by_guild(guild_id: int) -> None:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"UPDATE images SET deleted = {True} WHERE guild = {guild_id}")
@@ -76,7 +78,7 @@ def delete_seen_by_guild(guild_id):
     conn.close()
 
 
-def get_channel(channel_id):
+def get_channel(channel_id: int) -> tuple:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT * FROM guilds WHERE channel = {channel_id}")
@@ -85,7 +87,7 @@ def get_channel(channel_id):
     return result
 
 
-def delete_channel(channel_id):
+def delete_channel(channel_id: int) -> None:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"UPDATE guilds SET deleted = {True} WHERE channel = {channel_id}")
@@ -93,7 +95,7 @@ def delete_channel(channel_id):
     conn.close()
 
 
-def get_database_entry(channel_id, key):
+def get_database_entry(channel_id: int, key: str) -> tuple:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT {key} FROM guilds WHERE channel = '{channel_id}'")
@@ -102,7 +104,7 @@ def get_database_entry(channel_id, key):
     return result
 
 
-def set_database_entry(channel_id, key, value):
+def set_database_entry(channel_id: int, key: str, value: any) -> None:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"UPDATE guilds SET {key} = {value} WHERE channel = '{channel_id}'")
@@ -110,35 +112,35 @@ def set_database_entry(channel_id, key, value):
     conn.close()
 
 
-def get_posting_amount(channel_id):
+def get_posting_amount(channel_id: int) -> int:
     return get_database_entry(channel_id, 'post_amount')[0]
 
 
-def get_posting_frequency(channel_id):
+def get_posting_frequency(channel_id: int) -> int:
     return get_database_entry(channel_id, 'post_frequency')[0]
 
 
-def get_last_post_date(channel_id):
+def get_last_post_date(channel_id: int) -> int:
     return get_database_entry(channel_id, 'last_post')[0]
 
 
-def set_last_post_date(channel_id, date):
+def set_last_post_date(channel_id: int, date: float) -> None:
     set_database_entry(channel_id, 'last_post', date)
 
 
-def set_post_amount(channel_id, amount):
+def set_post_amount(channel_id: int, amount: int) -> None:
     set_database_entry(channel_id, 'post_amount', amount)
 
 
-def set_post_frequency(channel_id, amount):
+def set_post_frequency(channel_id: int, amount: int) -> None:
     set_database_entry(channel_id, 'post_frequency', amount)
 
 
-def set_deleted_status(channel_id, status: bool):
+def set_deleted_status(channel_id: int, status: bool) -> None:
     set_database_entry(channel_id, 'deleted', status)
 
 
-def is_image_seen(filename, guild_id):
+def is_image_seen(filename: str, guild_id: int) -> bool:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT COUNT(*) FROM images WHERE image = '{filename}' AND guild = {guild_id} AND deleted = {False}")
@@ -147,14 +149,14 @@ def is_image_seen(filename, guild_id):
     return seen_count > 0
 
 
-def is_channel_deleted(channel_id):
+def is_channel_deleted(channel_id: int) -> bool:
     deleted_status = get_database_entry(channel_id, 'deleted')
     if deleted_status is None:
         return True
     return bool(deleted_status[0])
 
 
-def total_images_sent_to_guild(guild_id):
+def total_images_sent_to_guild(guild_id: int) -> int:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT COUNT(*) FROM images WHERE guild = {guild_id}")
@@ -163,7 +165,7 @@ def total_images_sent_to_guild(guild_id):
     return seen_count
 
 
-def channels_posting_to_per_guild(guild_id):
+def channels_posting_to_per_guild(guild_id: int) -> list:
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT channel FROM guilds WHERE guild = {guild_id}")
@@ -172,7 +174,7 @@ def channels_posting_to_per_guild(guild_id):
     return channels
 
 
-def add_liked_image(parameters):
+def add_liked_image(parameters: dict) -> None:
     conn = database_connection()
     cur = conn.cursor()
     now = datetime.datetime.now()
@@ -197,7 +199,7 @@ def add_liked_image(parameters):
     conn.close()
 
 
-def remove_liked_image(parameters):
+def remove_liked_image(parameters: dict) -> None:
     conn = database_connection()
     cur = conn.cursor()
     now = datetime.datetime.now()
@@ -212,7 +214,7 @@ def remove_liked_image(parameters):
     conn.close()
 
 
-def get_top_liked_file(guild_id, channel_id):
+def get_top_liked_file(guild_id: int, channel_id: int) -> list:
     conn = database_connection()
     cur = conn.cursor()
     sql_liked = f"SELECT filename, counter FROM liked_images WHERE guild_id = {guild_id} AND channel_id = {channel_id}"
@@ -222,7 +224,7 @@ def get_top_liked_file(guild_id, channel_id):
     return sorted(liked_images, key=lambda x: x[1], reverse=True)[0][0]
 
 
-def add_user(user_id, user_name, guild_id):
+def add_user(user_id: int, user_name: str, guild_id: int) -> None:
     now = datetime.datetime.now()
     conn = database_connection()
     cur = conn.cursor()
@@ -241,7 +243,7 @@ def add_user(user_id, user_name, guild_id):
     conn.close()
 
 
-def remove_user(user_id, guild_id):
+def remove_user(user_id: int, guild_id: int) -> None:
     now = datetime.datetime.now()
     conn = database_connection()
     cur = conn.cursor()
@@ -251,7 +253,7 @@ def remove_user(user_id, guild_id):
     conn.close()
 
 
-def check_guild_permissions(user_id, guild_id):
+def check_guild_permissions(user_id: int, guild_id: int) -> bool:
     find_sql = (f"SELECT bot_permissions FROM users "
                 f"WHERE user_id = '{user_id}' AND guild_id = {guild_id}")
     conn = database_connection()
@@ -264,7 +266,7 @@ def check_guild_permissions(user_id, guild_id):
     return found_record[0] >= 2
 
 
-def check_private_permissions(user_id):
+def check_private_permissions(user_id: int) -> bool:
     find_sql = (f"SELECT bot_permissions FROM users "
                 f"WHERE user_id = '{user_id}' AND guild_id = NULL")
     conn = database_connection()
@@ -277,7 +279,7 @@ def check_private_permissions(user_id):
     return found_record[0] == 3
 
 
-def reset_last_viewed_for_channel(channel_id):
+def reset_last_viewed_for_channel(channel_id: int) -> None:
     last_post_date = datetime.datetime.fromtimestamp(float(get_last_post_date(channel_id)))
     posting_freq = int(get_posting_frequency(channel_id))
     next_post_timer = constants.TRIGGER_DURATION / posting_freq

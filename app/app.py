@@ -10,10 +10,10 @@ from app.utilities import database, utility
 
 
 class App:
-    def __init__(self, bot: discord.Bot):
+    def __init__(self, bot: discord.Bot) -> None:
         self._bot = bot
 
-    async def run(self):
+    async def run(self) -> None:
         channels = database.get_active_channels()
         channels_list = []
         for t in channels:
@@ -24,7 +24,7 @@ class App:
         utility.log_event('Coroutines ended')
 
     @staticmethod
-    def _startup_tasks(channels):
+    def _startup_tasks(channels: list) -> list:
         utility.log_event('Bot starting')
         tasks = []
         for channel in channels:
