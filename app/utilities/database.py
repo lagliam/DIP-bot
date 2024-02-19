@@ -285,3 +285,44 @@ def reset_last_viewed_for_channel(channel_id: int) -> None:
     next_post_timer = constants.TRIGGER_DURATION / posting_freq
     trigger_time = (last_post_date.timestamp() - next_post_timer) + constants.POLL_INTERVAL
     set_database_entry(channel_id, 'last_post', trigger_time)
+
+
+def log_report(channel_id: int, guild_id: int | None, filename: str) -> None:
+    now = datetime.datetime.now()
+    conn = database_connection()
+    cur = conn.cursor()
+    find_sql = (f"SELECT id FROM reported_images "
+                f"WHERE channel_id = '{channel_id}' AND filename = '{filename}'")
+    if guild_id is None:
+        find_sql += ' AND guild_id IS NULL'
+        guild = 'NULL'
+    else:
+        find_sql += f' AND guild_id = {guild_id}'
+        guild = guild_id
+    cur.execute(find_sql)
+    found_report = cur.fetchone()
+    if found_report:
+        cur.execute(f"UPDATE reported_images SET counter = counter + 1, updated = '{now}' "
+                    f"WHERE id = {found_report[0]}")
+        conn.commit()
+    else:
+        cur.execute(f"INSERT INTO reported_images (channel_id, guild_id, filename, updated, created) "
+                    f"VALUES('{channel_id}', {guild}, '{filename}', '{now}', '{now}')")
+        conn.commit()
+    conn.close()
+
+
+def get_report_count(channel_id: int, guild_id: int | None, filename: str):
+    conn = database_connection()
+    cur = conn.cursor()
+    find_sql = (f"SELECT counter FROM reported_images "
+                f"WHERE channel_id = '{channel_id}' AND filename = '{filename}'")
+    if guild_id is None:
+        find_sql += ' AND guild_id IS NULL'
+    else:
+        find_sql += f' AND guild_id = {guild_id}'
+    cur.execute(find_sql)
+    found_report_count = cur.fetchone()[0]
+    conn.close()
+    return found_report_count
+
