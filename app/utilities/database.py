@@ -11,7 +11,13 @@ from mysql.connector.pooling import PooledMySQLConnection
 from app.utilities import utility, constants
 
 
-def database_connection() ->  PooledMySQLConnection | MySQLConnectionAbstract:
+def database_connection() -> PooledMySQLConnection | MySQLConnectionAbstract:
+    """
+    Gets a connection to the database
+    :return: The connection object
+    :rtype: PooledMySQLConnection | MySQLConnectionAbstract
+    """
+
     config = {
         'user': os.getenv('DB_USER'),
         'password': os.getenv('DB_PASS'),
@@ -23,6 +29,12 @@ def database_connection() ->  PooledMySQLConnection | MySQLConnectionAbstract:
 
 
 def get_channels() -> list:
+    """
+    Gets a list of channels from the database
+    :return: The list of channels
+    :rtype: list
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute('SELECT channel FROM guilds')
@@ -32,6 +44,12 @@ def get_channels() -> list:
 
 
 def get_active_channels() -> list[tuple]:
+    """
+    Gets only channels that haven't been marked as deleted
+    :return: The list of channels
+    :rtype: list
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f'SELECT channel FROM guilds WHERE deleted = {False}')
@@ -41,6 +59,15 @@ def get_active_channels() -> list[tuple]:
 
 
 def start_posting_entry(channel_id: int, guild_id: int) -> None:
+    """
+    Creates a posting entry in the 'guilds' table
+
+    :param channel_id: The channel id to post to
+    :type channel_id: int
+    :param guild_id: The guild id the channel resides in
+    :type guild_id: int
+    """
+
     defaults = (f'{channel_id}', f'{guild_id}', '1', '1', f'{time.time()}', False)
     conn = database_connection()
     try:
@@ -54,6 +81,15 @@ def start_posting_entry(channel_id: int, guild_id: int) -> None:
 
 
 def write_viewed_image_list_for_guild(filename: str, guild_id: int) -> None:
+    """
+    Marks an image as viewed by creating a database entry
+
+    :param filename: The file that was sent
+    :type filename: str
+    :param guild_id: The guild which received the image
+    :type guild_id: int
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"INSERT INTO images VALUES('{guild_id}', '{filename}', {False})")
@@ -62,6 +98,15 @@ def write_viewed_image_list_for_guild(filename: str, guild_id: int) -> None:
 
 
 def get_seen_images(guild: int) -> list:
+    """
+    Gets a list of images that has already been posted unless they were marked as deleted
+
+    :param guild: The guild that the images were posted to
+    :type guild: int
+    :return: A list of images that has been sent to the guild
+    :rtype: list
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT image FROM images WHERE guild = {guild} AND deleted = {False}")
@@ -71,6 +116,13 @@ def get_seen_images(guild: int) -> list:
 
 
 def delete_seen_by_guild(guild_id: int) -> None:
+    """
+    Resets an image to unseen in the database by marking as deleted
+
+    :param guild_id: The guild which receives the posts
+    :type guild_id: int
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"UPDATE images SET deleted = {True} WHERE guild = {guild_id}")
@@ -79,6 +131,15 @@ def delete_seen_by_guild(guild_id: int) -> None:
 
 
 def get_channel(channel_id: int) -> tuple:
+    """
+    Gets all columns from the 'guilds' table for a given channel
+
+    :param channel_id: The channel to get
+    :type channel_id: int
+    :return: The fetched result
+    :rtype: tuple
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT * FROM guilds WHERE channel = {channel_id}")
@@ -88,6 +149,13 @@ def get_channel(channel_id: int) -> tuple:
 
 
 def delete_channel(channel_id: int) -> None:
+    """
+    Marks a channel as deleted to stop posting to
+
+    :param channel_id: The channel to stop posting to
+    :type channel_id: int
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"UPDATE guilds SET deleted = {True} WHERE channel = {channel_id}")
@@ -96,6 +164,17 @@ def delete_channel(channel_id: int) -> None:
 
 
 def get_database_entry(channel_id: int, key: str) -> tuple:
+    """
+    Gets a 'guilds' table entry
+
+    :param channel_id: The channel whose data we want
+    :type channel_id: int
+    :param key: The column name to retrieve
+    :type key: str
+    :return: The retrieved data
+    :rtype: tuple
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT {key} FROM guilds WHERE channel = '{channel_id}'")
@@ -105,6 +184,17 @@ def get_database_entry(channel_id: int, key: str) -> tuple:
 
 
 def set_database_entry(channel_id: int, key: str, value: any) -> None:
+    """
+    Sets an entry in the 'guilds' table
+
+    :param channel_id: The channel to update
+    :type channel_id: int
+    :param key: The column name to update
+    :type key: str
+    :param value: The value to set the column to
+    :type value: any
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"UPDATE guilds SET {key} = {value} WHERE channel = '{channel_id}'")
@@ -113,34 +203,108 @@ def set_database_entry(channel_id: int, key: str, value: any) -> None:
 
 
 def get_posting_amount(channel_id: int) -> int:
+    """
+    Gets the amount of posts for a channel
+
+    :param channel_id: The channel to check number of posts
+    :type channel_id: int
+    :return: The number of posts the channel sends at a time
+    :rtype: int
+    """
+
     return get_database_entry(channel_id, 'post_amount')[0]
 
 
 def get_posting_frequency(channel_id: int) -> int:
+    """
+    Gets the amount of posts per day to send
+
+    :param channel_id: The channel being posted to
+    :type channel_id: int
+    :return: The posting frequency
+    :rtype: int
+    """
+
     return get_database_entry(channel_id, 'post_frequency')[0]
 
 
 def get_last_post_date(channel_id: int) -> int:
+    """
+    Gets the time in seconds the last post was sent
+
+    :param channel_id: The channel to check
+    :type channel_id: int
+    :return: The last post time in seconds
+    :rtype: int
+    """
+
     return get_database_entry(channel_id, 'last_post')[0]
 
 
 def set_last_post_date(channel_id: int, date: float) -> None:
+    """
+    Sets the post time
+
+    :param channel_id: The channel last posted to
+    :type channel_id: int
+    :param date: Time as represented by seconds
+    :type date: float
+    """
+
     set_database_entry(channel_id, 'last_post', date)
 
 
 def set_post_amount(channel_id: int, amount: int) -> None:
+    """
+    Sets the amount of posts to send at a time
+
+    :param channel_id: The channel to send to
+    :type channel_id: int
+    :param amount: The amount of posts to send
+    :type amount: int
+    """
+
     set_database_entry(channel_id, 'post_amount', amount)
 
 
 def set_post_frequency(channel_id: int, amount: int) -> None:
+    """
+    Sets the number of posts per day
+
+    :param channel_id: The channel to send to
+    :type channel_id: int
+    :param amount: The frequency of posts
+    :type amount: int
+    """
+
     set_database_entry(channel_id, 'post_frequency', amount)
 
 
 def set_deleted_status(channel_id: int, status: bool) -> None:
+    """
+    Sets if a channel is deleted
+
+    :param channel_id: The channel to stop posting to
+    :type channel_id: int
+    :param status: True to mark as deleted, False otherwise
+    :type status: bool
+    """
+
     set_database_entry(channel_id, 'deleted', status)
 
 
 def is_image_seen(filename: str, guild_id: int) -> bool:
+    """
+    Gets if an image has been seen by the guild
+
+    :param filename: The image file name
+    :type filename: str
+    :param guild_id: The guild that is posted to
+    :type guild_id: int
+    :return: True if seen, False otherwise
+    :rtype: bool
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT COUNT(*) FROM images WHERE image = '{filename}' AND guild = {guild_id} AND deleted = {False}")
@@ -150,6 +314,15 @@ def is_image_seen(filename: str, guild_id: int) -> bool:
 
 
 def is_channel_deleted(channel_id: int) -> bool:
+    """
+    Determines if a channel has been deleted
+
+    :param channel_id: The channel to check
+    :type channel_id: int
+    :return: True if marked as deleted, False otherwise
+    :rtype: bool
+    """
+
     deleted_status = get_database_entry(channel_id, 'deleted')
     if deleted_status is None:
         return True
@@ -157,6 +330,15 @@ def is_channel_deleted(channel_id: int) -> bool:
 
 
 def total_images_sent_to_guild(guild_id: int) -> int:
+    """
+    Gets the total number of posts that have been sent to the guild
+
+    :param guild_id: The guild to check
+    :type guild_id: int
+    :return: Number of posts sent
+    :rtype: int
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT COUNT(*) FROM images WHERE guild = {guild_id}")
@@ -166,6 +348,15 @@ def total_images_sent_to_guild(guild_id: int) -> int:
 
 
 def channels_posting_to_per_guild(guild_id: int) -> list:
+    """
+    The channel ids that are in a guild being posted to
+
+    :param guild_id: The guild to check
+    :type guild_id: int
+    :return: The list of channel ids being posted to
+    :rtype: list
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT channel FROM guilds WHERE guild = {guild_id}")
@@ -175,6 +366,16 @@ def channels_posting_to_per_guild(guild_id: int) -> list:
 
 
 def add_liked_image(parameters: dict) -> None:
+    """
+    Upserts a liked image to the database
+
+    :param parameters: A dictionary containing the following parameters
+        filename : str
+        guild_id : int
+        channel_id : int
+    :type parameters: dict
+    """
+
     conn = database_connection()
     cur = conn.cursor()
     now = datetime.datetime.now()
@@ -200,6 +401,15 @@ def add_liked_image(parameters: dict) -> None:
 
 
 def remove_liked_image(parameters: dict) -> None:
+    """
+    Decrements a liked image counter
+
+    :param parameters: A dictionary containing the following parameters
+        filename : str
+        guild_id : int
+        channel_id : int
+    :type parameters: dict
+    """
     conn = database_connection()
     cur = conn.cursor()
     now = datetime.datetime.now()
@@ -214,7 +424,17 @@ def remove_liked_image(parameters: dict) -> None:
     conn.close()
 
 
-def get_top_liked_file(guild_id: int, channel_id: int) -> list:
+def get_top_liked_file(guild_id: int, channel_id: int) -> str:
+    """
+    Gets the most liked image for a guild and channel
+
+    :param guild_id: The guild to check
+    :type guild_id: int
+    :param channel_id: The channel to check
+    :type channel_id: int
+    :return: The filename of the most liked image
+    :rtype: str
+    """
     conn = database_connection()
     cur = conn.cursor()
     sql_liked = f"SELECT filename, counter FROM liked_images WHERE guild_id = {guild_id} AND channel_id = {channel_id}"
@@ -225,6 +445,17 @@ def get_top_liked_file(guild_id: int, channel_id: int) -> list:
 
 
 def add_user(user_id: int, user_name: str, guild_id: int) -> None:
+    """
+    Upserts a user for executing bot commands
+
+    :param user_id: The user id to allow
+    :type user_id: int
+    :param user_name: The display name of the user
+    :type user_name: str
+    :param guild_id: The guild to allow commands to run on
+    :type guild_id: int
+    """
+
     now = datetime.datetime.now()
     conn = database_connection()
     cur = conn.cursor()
@@ -244,6 +475,15 @@ def add_user(user_id: int, user_name: str, guild_id: int) -> None:
 
 
 def remove_user(user_id: int, guild_id: int) -> None:
+    """
+    Removes permissions from a user to disallow them from running commands
+
+    :param user_id: The user id to disallow
+    :type user_id: int
+    :param guild_id: The guild where the commands should be prevented
+    :type guild_id: int
+    """
+
     now = datetime.datetime.now()
     conn = database_connection()
     cur = conn.cursor()
@@ -254,6 +494,17 @@ def remove_user(user_id: int, guild_id: int) -> None:
 
 
 def check_guild_permissions(user_id: int, guild_id: int) -> bool:
+    """
+    Checks whether a user has permissions to execute commands in a guild
+
+    :param user_id: The user id to check
+    :type user_id: int
+    :param guild_id: The guild to check
+    :type guild_id: int
+    :return: True if allowed, False otherwise
+    :rtype: bool
+    """
+
     find_sql = (f"SELECT bot_permissions FROM users "
                 f"WHERE user_id = '{user_id}' AND guild_id = {guild_id}")
     conn = database_connection()
@@ -267,6 +518,15 @@ def check_guild_permissions(user_id: int, guild_id: int) -> bool:
 
 
 def check_private_permissions(user_id: int) -> bool:
+    """
+    Checks whether a user has permissions to interact with the bot in a private channel
+
+    :param user_id: The id of the user
+    :type user_id: int
+    :return: True if allowed, False otherwise
+    :rtype: bool
+    """
+
     find_sql = (f"SELECT bot_permissions FROM users "
                 f"WHERE user_id = '{user_id}' AND guild_id = NULL")
     conn = database_connection()
@@ -280,6 +540,13 @@ def check_private_permissions(user_id: int) -> bool:
 
 
 def reset_last_viewed_for_channel(channel_id: int) -> None:
+    """
+    Resets the last viewed time for a channel
+
+    :param channel_id: The channel to reset
+    :type channel_id: int
+    """
+
     last_post_date = datetime.datetime.fromtimestamp(float(get_last_post_date(channel_id)))
     posting_freq = int(get_posting_frequency(channel_id))
     next_post_timer = constants.TRIGGER_DURATION / posting_freq
@@ -288,6 +555,17 @@ def reset_last_viewed_for_channel(channel_id: int) -> None:
 
 
 def log_report(channel_id: int, guild_id: int | None, filename: str) -> None:
+    """
+    Stores a reported image in the database with a count of how many reports
+
+    :param channel_id: The channel the post was sent to
+    :type channel_id: int
+    :param guild_id: The guild the post was sent to
+    :type guild_id: int
+    :param filename: The file name of the reported image
+    :type filename: str
+    """
+
     now = datetime.datetime.now()
     conn = database_connection()
     cur = conn.cursor()
@@ -312,7 +590,19 @@ def log_report(channel_id: int, guild_id: int | None, filename: str) -> None:
     conn.close()
 
 
-def get_report_count(channel_id: int, guild_id: int | None, filename: str):
+def get_report_count(channel_id: int, guild_id: int | None, filename: str) -> int:
+    """
+    Gets a count of how many reports an image post has
+
+    :param channel_id: The channel to check
+    :type channel_id: int
+    :param guild_id: The guild to check, None for private channel
+    :type guild_id: int
+    :param filename: The reported filename
+    :type filename: str
+    :return: The number of reports a file has had
+    :rtype: int
+    """
     conn = database_connection()
     cur = conn.cursor()
     find_sql = (f"SELECT counter FROM reported_images "
@@ -325,4 +615,3 @@ def get_report_count(channel_id: int, guild_id: int | None, filename: str):
     found_report_count = cur.fetchone()[0]
     conn.close()
     return found_report_count
-

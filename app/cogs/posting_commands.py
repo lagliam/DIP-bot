@@ -8,13 +8,36 @@ from app.utilities import text, database, constants, utility
 
 
 class PostingCommands(commands.Cog):
+    """
+    Class representing a PostingCommands
+
+    Attributes
+    ----------
+    posting_commands : discord.SlashCommandGroup
+        The slash command group to group commands under the 'posts' slash command
+    """
+
     def __init__(self, bot: discord.Bot) -> None:
+        """
+        Parameters
+        ----------
+        :param bot: The bot object
+        :type bot: discord.Bot
+        """
+
         self.bot = bot
 
     posting_commands = discord.SlashCommandGroup('posts', 'Part of the image posting features')
 
     @posting_commands.command(description=text.NEXT_POST_DETAILS_HELP)
     async def next_post_details(self, ctx: ApplicationContext) -> None:
+        """
+        Gets how long until the next post and sends it
+
+        :param ctx: The context object
+        :type ctx: ApplicationContext
+        """
+
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -30,6 +53,15 @@ class PostingCommands(commands.Cog):
 
     @posting_commands.command(description=text.POST_AMOUNT_HELP)
     async def posting_amount(self, ctx: ApplicationContext, amount: discord.Option(int, choices=[1, 2, 3, 4, 5])) -> None:
+        """
+        Sets the amount of images to send at the same time
+
+        :param ctx: The context object
+        :type ctx: ApplicationContext
+        :param amount: Amount between 1 and 5 to post
+        :type amount: discord.Option
+        """
+
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -41,6 +73,13 @@ class PostingCommands(commands.Cog):
 
     @posting_commands.command(description=text.RESET_LAST_VIEWED_HELP)
     async def reset_last_viewed(self, ctx: ApplicationContext) -> None:
+        """
+        Resets the time for when the last image was sent
+
+        :param ctx: The context object
+        :type ctx: ApplicationContext
+        """
+
         await ctx.defer(ephemeral=True)
         if await utility.check_permissions(ctx, self.bot):
             database.reset_last_viewed_for_channel(ctx.channel.id)
@@ -48,6 +87,13 @@ class PostingCommands(commands.Cog):
 
     @posting_commands.command(description=text.RESET_VIEWED_HELP)
     async def reset_viewed(self, ctx: ApplicationContext) -> None:
+        """
+        Resets the images that have been viewed so that they can be sent again
+
+        :param ctx: The context object
+        :type ctx: ApplicationContext
+        """
+
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -60,6 +106,13 @@ class PostingCommands(commands.Cog):
 
     @posting_commands.command(description=text.STATS_HELP)
     async def stats(self, ctx: ApplicationContext) -> None:
+        """
+        Gets bot stats for the server
+
+        :param ctx: The context object
+        :type ctx: ApplicationContext
+        """
+
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
@@ -88,6 +141,15 @@ class PostingCommands(commands.Cog):
 
     @posting_commands.command(description=text.CHANGE_FREQUENCY_HELP)
     async def change_frequency(self, ctx: ApplicationContext, amount: discord.Option(int, choices=[1, 2, 3, 4, 5])) -> None:
+        """
+        Changes the daily frequency of posts sent to the server
+
+        :param ctx:The context object
+        :type ctx: ApplicationContext
+        :param amount: The number of posts per day between 1 and 5
+        :type amount: int
+        """
+
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return

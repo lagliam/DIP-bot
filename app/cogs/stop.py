@@ -6,11 +6,29 @@ from app.utilities import text, database, utility
 
 
 class Stop(commands.Cog):
+    """
+    Class that represents a Stop
+    """
+
     def __init__(self, bot: discord.Bot) -> None:
+        """
+        Parameters
+        ----------
+        :param bot: The bot object
+        :type bot: discord.Bot
+        """
+
         self.bot = bot
 
     @discord.command(description=text.STOP_POSTING_HELP)
     async def stop(self, ctx: ApplicationContext) -> None:
+        """
+        Stops posting in the channel the command was called in
+
+        :param ctx:The context object
+        :type ctx: ApplicationContext
+        """
+
         await ctx.defer(ephemeral=True)
         if not await utility.check_permissions(ctx, self.bot):
             return
