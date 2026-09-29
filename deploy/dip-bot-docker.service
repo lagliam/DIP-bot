@@ -1,0 +1,28 @@
+[Unit]
+# Runs DIP-bot via the docker-compose stack (bot + MySQL).
+# Use this unit *or* dip-bot.service, not both.
+Description=DIP-bot - Discord Image Posting Bot (docker compose stack)
+Documentation=https://github.com/lagliam/DIP-bot
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+WorkingDirectory=/opt/dip-bot
+
+# docker compose reads DB_USER / DB_PASS / DB_ROOT_PASS from this file.
+EnvironmentFile=/opt/dip-bot/.env
+
+ExecStartPre=/usr/bin/docker compose pull --ignore-pull-failures
+ExecStart=/usr/bin/docker compose up -d --build
+ExecStop=/usr/bin/docker compose down
+ExecReload=/usr/bin/docker compose up -d --build --force-recreate
+
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

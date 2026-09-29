@@ -1,49 +1,42 @@
 import discord
-from discord import ApplicationContext
+from discord import ApplicationContext, Option
 from discord.ext import commands
 
+from app.bot.client import DipBot
 from app.commands.start_posting import StartPosting
-from app.utilities import text, utility
+from app.utilities import text
+from app.utilities.discord_utils import check_permissions
 
 
 class Start(commands.Cog):
-    """
-    Class that represents a Start
-    """
+    """Begins scheduled posting in a channel."""
 
-    def __init__(self, bot: discord.Bot) -> None:
-        """
-        Parameters
-        ----------
-        :param bot: The bot object
-        :type bot: discord.Bot
-        """
-
+    def __init__(self, bot: DipBot) -> None:
         self.bot = bot
 
     @discord.command(description=text.START_POSTING_HELP)
-    async def start(self,
-                    ctx: ApplicationContext,
-                    amount: discord.Option(int, choices=[1, 2, 3, 4, 5], description=text.POST_AMOUNT_HELP),
-                    frequency: discord.Option(int, choices=[1, 2, 3, 4, 5], description=text.CHANGE_FREQUENCY_HELP)
-                    ) -> None:
-        """
-        Starts posting to the channel the command was called from
+    async def start(
+        self,
+        ctx: ApplicationContext,
+        amount: Option(  # type: ignore[valid-type]
+            int, choices=[1, 2, 3, 4, 5], description=text.POST_AMOUNT_HELP, default=1
+        ),
+        frequency: Option(  # type: ignore[valid-type]
+            int, choices=[1, 2, 3, 4, 5], description=text.CHANGE_FREQUENCY_HELP, default=1
+        ),
+    ) -> None:
+        """Start posting to the channel this was called from.
 
-        :param ctx:The context object
-        :type ctx: ApplicationContext
-        :param amount: Amount of posts to send between 1 and 5
-        :type amount: int
-        :param frequency:The amount of times per day to send posts between 1 and 5
-        :type frequency: int
+        :param ctx: The context of the command.
+        :param amount: Images per post, 1-5.
+        :param frequency: Posts per day, 1-5.
         """
 
         await ctx.defer(ephemeral=True)
-        if not await utility.check_permissions(ctx, self.bot):
+        if not await check_permissions(ctx, self.bot):
             return
-        start_command = StartPosting(ctx, amount, frequency)
-        await start_command.run()
+        await StartPosting(ctx, amount, frequency, self.bot.scheduler).run()
 
 
-def setup(bot: discord.Bot) -> None:
+def setup(bot: DipBot) -> None:
     bot.add_cog(Start(bot))

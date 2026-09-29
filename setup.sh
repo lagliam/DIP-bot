@@ -1,8 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-cp -r sample_images images &&
-cp .env.example .env &&
-cp alembic.ini.example alembic.ini &&
-mkdir db &&
-mkdir log &&
-mkdir reported_images
+set -euo pipefail
+
+mkdir -p images db log var/compressed
+
+if [ -z "$(ls -A images)" ]; then
+    cp -R sample_images/. images/
+fi
+
+if [ ! -f .env ]; then
+    cp .env.example .env
+    echo "Created .env from .env.example; fill in its values before starting the bot."
+fi
