@@ -1,52 +1,39 @@
+"""The ``/help`` command."""
+
+from __future__ import annotations
+
 import discord
 from discord import ApplicationContext
 from discord.ext import commands
 
-from app.utilities import text, utility
+from app.bot.client import DipBot
+from app.utilities import text
+from app.utilities.discord_utils import check_permissions
 
 
 class Help(commands.Cog):
-    """
-    Class used to represent a Help
-    """
+    """Describes the bot and its most-used commands."""
 
-    def __init__(self, bot: discord.Bot) -> None:
-        """
-        Parameters
-        ----------
-        :param bot: The bot object
-        :type bot: discord.Bot
-        """
-
+    def __init__(self, bot: DipBot) -> None:
         self.bot = bot
 
     @discord.command(description=text.HELP_HELP)
     async def help(self, ctx: ApplicationContext) -> None:
-        """
-        Displays a help message with info on the bot
-
-        :param ctx: The context object
-        :type ctx: ApplicationContext
-        """
-
+        """Show bot info and a short command list."""
         await ctx.defer(ephemeral=True)
-        if not await utility.check_permissions(ctx, self.bot):
+        if not await check_permissions(ctx, self.bot):
             return
-        bot_info = (f'{self.bot.user.name} is a versatile Discord bot designed to enhance your server\'s visual '
-                    f'experience by automatically posting images at predefined intervals. Whether you\'re looking to '
-                    f'showcase artwork, memes, or any other visual content, the bot makes it easy to keep your server '
-                    f'engaged with fresh and exciting images.')
+
+        name = self.bot.user.name if self.bot.user else "DIP-bot"
         embed = discord.Embed(
-            title=self.bot.user.name,
-            description=bot_info,
+            title=name,
+            description=text.bot_description(name),
             color=discord.Colour.blurple(),
         )
-        popular_commands = (f'/start - Starts posting to a server on a daily interval\n'
-                            f'/stop - Stops posting\n'
-                            f'/get_one_image - Gets an image and posts it immediately')
-        embed.add_field(name='Popular Commands', value=popular_commands)
-        await ctx.respond('', embed=embed)
+        embed.add_field(name="Popular Commands", value=text.POPULAR_COMMANDS, inline=False)
+        embed.add_field(name="Command Groups", value=text.COMMAND_GROUPS, inline=False)
+        await ctx.respond(embed=embed)
 
 
-def setup(bot: discord.Bot) -> None:
+def setup(bot: DipBot) -> None:
     bot.add_cog(Help(bot))

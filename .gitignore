@@ -131,6 +131,7 @@ guilds/
 get_git.sh
 *.out
 *.err
-db/
-alembic.ini
-reported_images/
+# The MySQL data volume at the repository root is runtime state.  Do not ignore
+# ``app/db``: it is the application's database package.
+/db/
+.venv/

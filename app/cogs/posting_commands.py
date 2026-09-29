@@ -1,164 +1,154 @@
+"""The ``/posts`` command group."""
+
+from __future__ import annotations
+
+import logging
 from datetime import datetime
 
 import discord
 from discord import ApplicationContext
 from discord.ext import commands
 
-from app.utilities import text, database, constants, utility
+from app.bot.client import DipBot
+from app.db import channels, images, session_scope
+from app.utilities import text
+from app.utilities.discord_utils import check_permissions, is_private, scope_id
+
+log = logging.getLogger(__name__)
 
 
 class PostingCommands(commands.Cog):
-    """
-    Class representing a PostingCommands
+    """Commands that inspect and adjust a channel's posting schedule."""
 
-    Attributes
-    ----------
-    posting_commands : discord.SlashCommandGroup
-        The slash command group to group commands under the 'posts' slash command
-    """
-
-    def __init__(self, bot: discord.Bot) -> None:
-        """
-        Parameters
-        ----------
-        :param bot: The bot object
-        :type bot: discord.Bot
-        """
-
+    def __init__(self, bot: DipBot) -> None:
         self.bot = bot
 
-    posting_commands = discord.SlashCommandGroup('posts', 'Part of the image posting features')
+    posting_commands = discord.SlashCommandGroup("posts", "Part of the image posting features")
 
     @posting_commands.command(description=text.NEXT_POST_DETAILS_HELP)
     async def next_post_details(self, ctx: ApplicationContext) -> None:
-        """
-        Gets how long until the next post and sends it
-
-        :param ctx: The context object
-        :type ctx: ApplicationContext
-        """
-
+        """Report how many images are queued and when they go out."""
         await ctx.defer(ephemeral=True)
-        if not await utility.check_permissions(ctx, self.bot):
+        if not await check_permissions(ctx, self.bot):
             return
-        if database.is_channel_deleted(ctx.channel.id):
+
+        # One query for the whole row, where the old code made three (§2.5).
+        async with session_scope() as session:
+            schedule = await channels.get_schedule(session, ctx.channel.id)
+
+        if schedule is None or not schedule.active:
             await ctx.respond(text.POSTING_NOT_STARTED)
             return
-        last_post_date = datetime.fromtimestamp(float(database.get_last_post_date(ctx.channel.id)))
-        seconds_since_last_post = (datetime.now() - last_post_date).total_seconds()
-        trigger_time = constants.TRIGGER_DURATION / int(database.get_posting_frequency(ctx.channel.id))
-        minutes_to_next_post = (trigger_time - seconds_since_last_post) / 60
-        post_amount = int(database.get_posting_amount(ctx.channel.id))
-        await ctx.respond(f'The next post of {post_amount} image(s) will be in {int(minutes_to_next_post)} minutes')
+
+        due_at = schedule.last_post + self.bot.config.post_interval(schedule.post_frequency)
+        minutes = max(int((due_at - datetime.now()).total_seconds() // 60), 0)
+        await ctx.respond(
+            f"The next post of {schedule.post_amount} image(s) will be in {minutes} minutes"
+        )
 
     @posting_commands.command(description=text.POST_AMOUNT_HELP)
-    async def posting_amount(self, ctx: ApplicationContext, amount: discord.Option(int, choices=[1, 2, 3, 4, 5])) -> None:
-        """
-        Sets the amount of images to send at the same time
-
-        :param ctx: The context object
-        :type ctx: ApplicationContext
-        :param amount: Amount between 1 and 5 to post
-        :type amount: discord.Option
-        """
-
+    async def posting_amount(
+        self,
+        ctx: ApplicationContext,
+        amount: discord.Option(int, choices=[1, 2, 3, 4, 5]),  # type: ignore[valid-type]
+    ) -> None:
+        """Set how many images go out per post."""
         await ctx.defer(ephemeral=True)
-        if not await utility.check_permissions(ctx, self.bot):
+        if not await check_permissions(ctx, self.bot):
             return
-        if database.is_channel_deleted(ctx.channel.id):
-            await ctx.respond(text.POSTING_NOT_STARTED)
-            return
-        database.set_post_amount(ctx.channel.id, amount)
+
+        async with session_scope() as session:
+            if not await channels.is_active(session, ctx.channel.id):
+                await ctx.respond(text.POSTING_NOT_STARTED)
+                return
+            await channels.set_post_amount(session, ctx.channel.id, amount)
         await ctx.respond(text.POST_AMOUNT_END)
+
+    @posting_commands.command(description=text.CHANGE_FREQUENCY_HELP)
+    async def change_frequency(
+        self,
+        ctx: ApplicationContext,
+        amount: discord.Option(int, choices=[1, 2, 3, 4, 5]),  # type: ignore[valid-type]
+    ) -> None:
+        """Set how many posts go out per day."""
+        await ctx.defer(ephemeral=True)
+        if not await check_permissions(ctx, self.bot):
+            return
+
+        async with session_scope() as session:
+            if not await channels.is_active(session, ctx.channel.id):
+                await ctx.respond(text.POSTING_NOT_STARTED)
+                return
+            await channels.set_post_frequency(session, ctx.channel.id, amount)
+        await ctx.respond(text.CHANGE_FREQUENCY_END)
 
     @posting_commands.command(description=text.RESET_LAST_VIEWED_HELP)
     async def reset_last_viewed(self, ctx: ApplicationContext) -> None:
-        """
-        Resets the time for when the last image was sent
-
-        :param ctx: The context object
-        :type ctx: ApplicationContext
-        """
-
+        """Pull the next post forward to within one poll interval."""
         await ctx.defer(ephemeral=True)
-        if await utility.check_permissions(ctx, self.bot):
-            database.reset_last_viewed_for_channel(ctx.channel.id)
-            await ctx.respond(text.RESET_LAST_VIEWED_RESPONSE)
+        if not await check_permissions(ctx, self.bot):
+            return
+
+        async with session_scope() as session:
+            schedule = await channels.get_schedule(session, ctx.channel.id)
+            if schedule is None or not schedule.active:
+                await ctx.respond(text.POSTING_NOT_STARTED)
+                return
+            # Rewind just far enough that the loop finds the post due one poll from now.
+            offset = (
+                self.bot.config.post_interval(schedule.post_frequency)
+                - self.bot.config.poll_interval
+            )
+            await channels.rewind_last_post(session, ctx.channel.id, offset)
+        await ctx.respond(text.RESET_LAST_VIEWED_RESPONSE)
 
     @posting_commands.command(description=text.RESET_VIEWED_HELP)
     async def reset_viewed(self, ctx: ApplicationContext) -> None:
-        """
-        Resets the images that have been viewed so that they can be sent again
-
-        :param ctx: The context object
-        :type ctx: ApplicationContext
-        """
-
+        """Put every previously-posted image back into rotation."""
         await ctx.defer(ephemeral=True)
-        if not await utility.check_permissions(ctx, self.bot):
+        if not await check_permissions(ctx, self.bot):
             return
-        if ctx.channel.type.name == 'private':
-            guild_id = ctx.user.id
-        else:
-            guild_id = ctx.channel.guild.id
-        database.delete_seen_by_guild(guild_id)
+
+        # A single generation bump rather than a soft-delete of every row (§3.3).
+        async with session_scope() as session:
+            await images.reset_seen(session, scope_id(ctx))
         await ctx.respond(text.RESET_VIEWED_MESSAGE)
 
     @posting_commands.command(description=text.STATS_HELP)
     async def stats(self, ctx: ApplicationContext) -> None:
-        """
-        Gets bot stats for the server
-
-        :param ctx: The context object
-        :type ctx: ApplicationContext
-        """
-
+        """Show totals for this guild."""
         await ctx.defer(ephemeral=True)
-        if not await utility.check_permissions(ctx, self.bot):
+        if not await check_permissions(ctx, self.bot):
             return
-        if ctx.channel.type.name == 'private':
-            guild_id = ctx.user.id
-            guild_name = 'Private Messages'
-            channels_names_string = 'DM Channel'
+
+        guild_id = scope_id(ctx)
+        async with session_scope() as session:
+            post_total = await images.total_sent(session, guild_id)
+            channel_ids = (
+                [] if is_private(ctx.channel) else await channels.ids_for_guild(session, guild_id)
+            )
+
+        if is_private(ctx.channel):
+            guild_name = "Private Messages"
+            channel_names = "DM Channel"
         else:
-            guild_id = ctx.channel.guild.id
-            guild_name = ctx.channel.guild.name
-            channels = database.channels_posting_to_per_guild(guild_id)
-            channels_names_list = []
-            for t in channels:
-                channel = await self.bot.fetch_channel(t[0])
-                channels_names_list.append(channel.name)
-            channels_names_string = ', '.join(channels_names_list)
-        post_total = database.total_images_sent_to_guild(guild_id)
+            guild_name = ctx.guild.name
+            names = [
+                channel.name
+                for channel in (self.bot.get_channel(cid) for cid in channel_ids)
+                if channel is not None
+            ]
+            channel_names = ", ".join(names) if names else "None"
+
         embed = discord.Embed(
-            title=f'Bot Stats for {guild_name}',
+            title=f"Bot Stats for {guild_name}",
             description=text.STATS_HELP,
             color=discord.Colour.blurple(),
         )
-        embed.add_field(name='Total images sent', value=f'Sent: {post_total}')
-        embed.add_field(name='Channels being posted to', value=channels_names_string)
-        await ctx.respond('', embed=embed)
-
-    @posting_commands.command(description=text.CHANGE_FREQUENCY_HELP)
-    async def change_frequency(self, ctx: ApplicationContext, amount: discord.Option(int, choices=[1, 2, 3, 4, 5])) -> None:
-        """
-        Changes the daily frequency of posts sent to the server
-
-        :param ctx:The context object
-        :type ctx: ApplicationContext
-        :param amount: The number of posts per day between 1 and 5
-        :type amount: int
-        """
-
-        await ctx.defer(ephemeral=True)
-        if not await utility.check_permissions(ctx, self.bot):
-            return
-        if database.is_channel_deleted(ctx.channel.id):
-            await ctx.respond(text.POSTING_NOT_STARTED)
-            return
-        database.set_post_frequency(ctx.channel.id, amount)
-        await ctx.respond(text.CHANGE_FREQUENCY_END)
+        embed.add_field(name="Total images sent", value=f"Sent: {post_total}")
+        embed.add_field(name="Channels being posted to", value=channel_names)
+        await ctx.respond(embed=embed)
 
 
-def setup(bot: discord.Bot) -> None:
+def setup(bot: DipBot) -> None:
     bot.add_cog(PostingCommands(bot))

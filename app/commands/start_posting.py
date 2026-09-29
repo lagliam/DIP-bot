@@ -1,73 +1,61 @@
-import asyncio
+"""The ``/start`` command's logic."""
+
+from __future__ import annotations
+
+import logging
 
 from discord import ApplicationContext
 
-from app.bot.main_loop import MainLoop
-from app.utilities import text, database, utility
+from app.bot.scheduler import PostingScheduler
+from app.db import channels, session_scope
+from app.utilities import text
+from app.utilities.discord_utils import scope_id
+
+log = logging.getLogger(__name__)
 
 
 class StartPosting:
-    """
-    Class that represents StartPosting
-    """
+    """Registers a channel and hands its loop to the scheduler."""
 
-    def __init__(self, ctx: ApplicationContext, amount: int, frequency: int):
+    def __init__(
+        self,
+        ctx: ApplicationContext,
+        amount: int,
+        frequency: int,
+        scheduler: PostingScheduler,
+    ) -> None:
         """
-        Parameters
-        ----------
-        :param ctx: The context object
-        :type ctx: ApplicationContext
-        :param amount: Amount to post at one time
-        :type amount: int
-        :param frequency:The number of times per day to post
-        :type frequency: int
+        :param ctx: The invoking context.
+        :param amount: Images per post.
+        :param frequency: Posts per window.
+        :param scheduler: Owns the resulting task
         """
-
         self._ctx = ctx
-        self.amount = amount
-        self.frequency = frequency
+        self._amount = amount
+        self._frequency = frequency
+        self._scheduler = scheduler
         self._channel_id = ctx.channel.id
-        if ctx.channel.type.name == 'private':
-            self._guild_id = ctx.user.id
-        else:
-            self._guild_id = ctx.channel.guild.id
+        self._guild_id = scope_id(ctx)
 
     async def run(self) -> None:
-        """
-        Executes the logic to start posting
-        """
+        """Start posting or explain why it is already running."""
+        async with session_scope() as session:
+            if await channels.is_active(session, self._channel_id):
+                await self._ctx.respond(text.START_POSTING_REPEAT)
+                return
+            is_new = await channels.start(
+                session,
+                self._channel_id,
+                self._guild_id,
+                post_amount=self._amount,
+                post_frequency=self._frequency,
+            )
 
-        if not database.is_channel_deleted(self._channel_id):
-            await self._ctx.respond(text.START_POSTING_REPEAT)
-            return
-        new_channel = False
-        channel = database.get_channel(self._channel_id)
-        if not channel:
-            new_channel = True
-            database.start_posting_entry(self._channel_id, self._guild_id)
-        database.set_post_amount(self._channel_id, self.amount)
-        database.set_post_frequency(self._channel_id, self.frequency)
-        database.set_deleted_status(self._channel_id, False)
-        await self._ctx.respond(text.START_POSTING)
-        loop = self._start_posting(new_channel)
-        await asyncio.create_task(loop.run())
-
-    def _start_posting(self, is_new_channel: bool) -> MainLoop:
-        """
-        Gets a MainLoop object to start posting to a channel
-
-        :param is_new_channel: Determines whether to format the log message to say restarting or starting
-        :type is_new_channel: bool
-        :return: The MainLoop object
-        :rtype: MainLoop
-        """
-
-        if is_new_channel:
-            utility.log_event(f'Started posting for guild {self._guild_id} channel {self._channel_id}')
-        else:
-            utility.log_event(f'Restarted posting for guild {self._guild_id} channel {self._channel_id}')
-        return MainLoop({
-            'ctx': self._ctx.channel,
-            'guild_id': self._guild_id,
-            'restart': not is_new_channel
-        })
+        log.info(
+            "%s posting for guild %s channel %s",
+            "Started" if is_new else "Restarted",
+            self._guild_id,
+            self._channel_id,
+        )
+        await self._ctx.respond(text.START_POSTING if is_new else text.RESTART_POSTING)
+        self._scheduler.start(self._ctx.channel, self._guild_id, restart=not is_new)

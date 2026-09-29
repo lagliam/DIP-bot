@@ -1,0 +1,55 @@
+[Unit]
+# Runs DIP-bot directly from a virtualenv (no Docker).
+# The bot resolves .env, app/cogs, images/ and log/ relative to the working
+# directory, so WorkingDirectory must be the repository root.
+Description=DIP-bot - Discord Image Posting Bot
+Documentation=https://github.com/lagliam/DIP-bot
+After=network-online.target
+Wants=network-online.target
+
+# Give up if the bot crashes 5 times inside 5 minutes (bad token, DB unreachable).
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=dipbot
+Group=dipbot
+WorkingDirectory=/opt/dip-bot
+EnvironmentFile=/opt/dip-bot/.env
+ExecStart=/opt/dip-bot/.venv/bin/python -u bot.py
+
+# Restart on any exit, but back off so a crash loop cannot spin the CPU.
+Restart=always
+RestartSec=10
+
+# Log to the journal instead of nohup output files.
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dip-bot
+
+# Give the bot time to close its Discord websocket cleanly.
+KillSignal=SIGINT
+TimeoutStopSec=30
+
+# Hardening. Compression writes cache files under var/ and never changes originals.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ReadWritePaths=/opt/dip-bot/log /opt/dip-bot/reported_images /opt/dip-bot/var
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

@@ -1,133 +1,119 @@
+"""The ``/images`` command group."""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+import random
+
 import discord
 from discord import ApplicationContext
 from discord.ext import commands
 
+from app.bot.client import DipBot
 from app.bot.image_sender import ImageSender
-from app.utilities import text, database, utility, constants
+from app.config import Config
+from app.db import channels, reactions, session_scope
+from app.utilities import imaging, text
+from app.utilities.discord_utils import check_permissions, scope_id
+
+log = logging.getLogger(__name__)
+
+_PREVIEW_COUNT = 3
+
+
+async def preview_files(config: Config, count: int) -> list[discord.File]:
+    """Pick up to ``count`` random images from the library to show as a preview."""
+    library = await asyncio.to_thread(imaging.image_files, config.images_path)
+    if not library:
+        log.info("Preview requested but %s is empty", config.images_path)
+        return []
+    chosen = random.sample(library, k=min(count, len(library)))
+    return [discord.File(path) for path in chosen]
 
 
 class PreviewView(discord.ui.View):
-    """
-    Class that represents a PreviewView
-    """
+    """A one-shot button that reveals a few more images."""
 
-    @discord.ui.button(label='Preview More', style=discord.ButtonStyle.primary, emoji='😎')
-    async def button_callback(self, button, interaction) -> None:
-        """
-        Callback for when a button is pressed
+    def __init__(self, config: Config) -> None:
+        super().__init__()
+        self._config = config
 
-        :param button: The button object
-        :param interaction: A discord interaction object
-        """
-
+    @discord.ui.button(label="Preview More", style=discord.ButtonStyle.primary, emoji="😎")
+    async def button_callback(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ) -> None:
+        """Replace the message with another handful of images and disable the button."""
         button.disabled = True
-        button.label = 'End Of Preview'
+        button.label = "End Of Preview"
         button.emoji = None
-        image1 = get_image_filename()
-        image2 = get_image_filename()
-        image3 = get_image_filename()
-        await interaction.response.edit_message(view=self, files=[discord.File(constants.IMAGES_PATH + image1),
-                                                                  discord.File(constants.IMAGES_PATH + image2),
-                                                                  discord.File(constants.IMAGES_PATH + image3)])
-
-
-def get_image_filename() -> str | None:
-    """
-    Gets a file name to view for preview
-    """
-
-    images_list = utility.image_list(constants.IMAGES_PATH)
-    if len(images_list) == 0:
-        utility.log_event('No images in directory')
-        return None
-    filename = utility.get_file(images_list)
-    return filename
+        files = await preview_files(self._config, _PREVIEW_COUNT)
+        await interaction.response.edit_message(view=self, files=files)
 
 
 class ImageCommands(commands.Cog):
-    """
-    Class that represents ImageCommands
+    """Commands that fetch individual images on demand."""
 
-    Attributes
-    ----------
-    image_commands : discord.SlashCommandGroup
-        The slash command group to group commands under the 'images' slash command
-    """
-
-    def __init__(self, bot: discord.Bot) -> None:
-        """
-        Parameters
-        ----------
-        :param bot: The bot object
-        :type bot: discord.Bot
-        """
-
+    def __init__(self, bot: DipBot) -> None:
         self.bot = bot
 
-    image_commands = discord.SlashCommandGroup('images', 'Part of the images features')
+    image_commands = discord.SlashCommandGroup("images", "Part of the images features")
 
     @image_commands.command(description=text.GET_IMAGE_HELP)
     async def get_one_image(self, ctx: ApplicationContext) -> None:
-        """
-        Gets one image and sends it
-
-        :param ctx: The context object
-        :type ctx: ApplicationContext
-        """
-
+        """Post a single unseen image immediately."""
         await ctx.defer(ephemeral=True)
-        if not await utility.check_permissions(ctx, self.bot):
+        if not await check_permissions(ctx, self.bot):
             return
-        if ctx.channel.type.name == 'private':
-            guild_id = ctx.user.id
-        else:
-            guild_id = ctx.channel.guild.id
-        image_sender = ImageSender(ctx.channel, guild_id)
-        await ctx.respond(text.GET_IMAGE)
-        sent = await image_sender.send_image()
-        if not sent:
-            utility.log_event(f'Unable to send image to channel {ctx.channel.id}')
-            await ctx.send(text.NO_MORE_TO_SEE)
-            if not database.is_channel_deleted(ctx.channel.id):
-                database.delete_channel(ctx.channel.id)
+
+        sender = ImageSender(ctx.channel, scope_id(ctx), self.bot.config)
+
+        if await sender.send_one():
+            await ctx.respond(text.GET_IMAGE)
+            return
+
+        log.info("Nothing left to send to channel %s", ctx.channel.id)
+        await ctx.respond(text.NO_MORE_TO_SEE)
+        async with session_scope() as session:
+            if await channels.is_active(session, ctx.channel.id):
+                await channels.deactivate(session, ctx.channel.id)
+                self.bot.scheduler.stop(ctx.channel.id)
 
     @image_commands.command(description=text.PREVIEW_HELP)
     async def preview(self, ctx: ApplicationContext) -> None:
-        """
-        Opens a preview pane to allow a user to see what images are going to be sent to the server
-
-        :param ctx: The context object
-        :type ctx: ApplicationContext
-        """
-
+        """Show what the bot has to post, without marking anything as seen."""
         await ctx.defer(ephemeral=True)
-        if not await utility.check_permissions(ctx, self.bot):
+        if not await check_permissions(ctx, self.bot):
             return
-        filename = get_image_filename()
-        if not filename:
-            await ctx.respond('No images to preview')
-        else:
-            await ctx.respond(view=PreviewView(), file=discord.File(constants.IMAGES_PATH + filename))
+
+        files = await preview_files(self.bot.config, 1)
+        if not files:
+            await ctx.respond(text.NO_IMAGES_TO_PREVIEW)
+            return
+        await ctx.respond(view=PreviewView(self.bot.config), file=files[0])
 
     @image_commands.command(description=text.TOP_LIKED_HELP)
     async def get_top_liked(self, ctx: ApplicationContext) -> None:
-        """
-        Gets the most liked image and displays it to the user
-
-        :param ctx: The context object
-        :type ctx: ApplicationContext
-        """
-
+        """Post the most-reacted-to image for this channel."""
         await ctx.defer(ephemeral=True)
-        if not await utility.check_permissions(ctx, self.bot):
+        if not await check_permissions(ctx, self.bot):
             return
-        if ctx.channel.type.name == 'private':
-            guild_id = ctx.user.id
-        else:
-            guild_id = ctx.channel.guild.id
-        filename = database.get_top_liked_file(guild_id, ctx.channel.id)
-        await ctx.respond('', file=discord.File(constants.IMAGES_PATH + filename))
+
+        async with session_scope() as session:
+            filename = await reactions.top_liked_filename(session, scope_id(ctx), ctx.channel.id)
+
+        # An empty result is now a message rather than an IndexError (§1.2).
+        if filename is None:
+            await ctx.respond(text.NO_LIKED_IMAGES)
+            return
+
+        path = self.bot.config.images_path / filename
+        if not path.is_file():
+            log.warning("Top liked image %s is no longer on disk", filename)
+            await ctx.respond(text.LIKED_IMAGE_MISSING)
+            return
+        await ctx.respond(file=discord.File(path))
 
 
-def setup(bot: discord.Bot) -> None:
+def setup(bot: DipBot) -> None:
     bot.add_cog(ImageCommands(bot))
