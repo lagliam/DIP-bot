@@ -1,0 +1,16 @@
+.git
+.idea
+.agents
+.codex
+.venv
+.ruff_cache
+__pycache__
+*.py[cod]
+.env
+images
+db
+log
+reported_images
+var
+tests
+IMPROVEMENTS.md

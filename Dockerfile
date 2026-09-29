@@ -1,17 +1,22 @@
-FROM python:3.11
+FROM python:3.14-slim-bookworm
 
-ADD requirements.txt .
+WORKDIR /app
 
-RUN pip install -r requirements.txt
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-COPY bot.py .
+COPY pyproject.toml README.md ./
+COPY app ./app
+COPY bot.py ./
+COPY alembic ./alembic
+COPY alembic.ini ./
 
-COPY .env .
+RUN pip install --no-cache-dir .
 
-COPY ./app /app
+RUN useradd --system --create-home --uid 10001 dipbot && \
+    mkdir -p /app/log /app/images /app/reported_images /app/var && \
+    chown -R dipbot:dipbot /app
 
-COPY ./alembic /alembic
+USER dipbot
 
-COPY alembic.ini .
-
-CMD ["python", "bot.py"]
+CMD ["dip-bot"]
